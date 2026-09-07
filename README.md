@@ -10,8 +10,8 @@
 
 Reusable GitHub Actions and workflows for projects that use Taskfiles in local development and CI.
 
-Project-specific commands and configuration stay in consumer repositories.
-Shared workflow orchestration lives here.
+- Project-specific commands and configuration stay in consumer repositories.
+- Shared workflow orchestration lives here.
 
 ## Actions
 
