@@ -30,8 +30,14 @@ jobs:
 
           if [ -z "$match" ]; then
             echo "::error::PR has no changelog label. Apply at least one of:"
-            printf '  - %s\n' $allowed
+            while IFS= read -r label; do
+              printf '  - %s\n' "$label"
+            done <<< "$allowed"
             echo "Currently on PR: ${applied:-(none)}"
             exit 1
           fi
-          echo "matched: $(printf '%s ' $match)"
+          printf 'matched:'
+          while IFS= read -r label; do
+            printf ' %s' "$label"
+          done <<< "$match"
+          printf '\n'
