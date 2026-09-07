@@ -16,14 +16,17 @@ permissions:
 jobs:
   label-check:
     name: Label check
-    uses: ./.github/workflows/require-changelog-label.yml
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check changelog label
+        uses: ./check-changelog-label
 
   actionlint:
     name: Actionlint
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6
-
       - name: Check GitHub Actions workflows
         uses: docker://rhysd/actionlint:1.7.12
 

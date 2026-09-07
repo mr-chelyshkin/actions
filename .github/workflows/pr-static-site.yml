@@ -33,15 +33,3 @@ jobs:
       - name: Run tests
         uses: mr-chelyshkin/actions/invoke-taskfile@v1
         with: { command: ci/test }
-
-  check-job-results:
-    if: always()
-    needs: [build, audit, test]
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-    steps:
-      - name: Check job results
-        uses: mr-chelyshkin/actions/check-job-results@v1
-        with:
-          results: ${{ toJSON(needs) }}
