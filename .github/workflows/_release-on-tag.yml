@@ -1,0 +1,59 @@
+name: Release on tag
+
+on:
+  push:
+    tags:
+      - "v*"
+
+concurrency:
+  group: tag-release-${{ github.ref_name }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  verify-tag:
+    name: Verify tag is on main
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Check tag commit is contained in main
+        shell: bash
+        env:
+          TAG_REF: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+
+          git fetch --no-tags origin main:refs/remotes/origin/main
+
+          tag_sha=$(git rev-parse "${TAG_REF}^{commit}")
+          main_sha=$(git rev-parse refs/remotes/origin/main)
+
+          if ! git merge-base --is-ancestor "$tag_sha" "$main_sha"; then
+            echo "::error::Tag ${GITHUB_REF_NAME} points to ${tag_sha}, which is not contained in main (${main_sha})."
+            exit 1
+          fi
+
+          echo "Tag ${GITHUB_REF_NAME} points to ${tag_sha}, contained in main (${main_sha})."
+
+  release:
+    name: release
+    needs: verify-tag
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v3
+        with:
+          draft: false
+          prerelease: false
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          generate_release_notes: true
