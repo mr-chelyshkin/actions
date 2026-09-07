@@ -1,0 +1,9 @@
+# OS files
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Task runner cache
+.task/

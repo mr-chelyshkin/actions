@@ -1,0 +1,64 @@
+name: Invoke Taskfile
+description: Run a command from the consumer's Taskfile.
+
+inputs:
+  command:
+    description: Task command and arguments to run.
+    required: true
+  environment:
+    description: Environment variables as comma-separated KEY=value pairs.
+    required: false
+  directory:
+    description: Working directory where Task runs.
+    required: false
+    default: '.'
+  version:
+    description: Task release version without the v prefix.
+    required: false
+    default: '3.53.1'
+
+runs:
+  using: composite
+  steps:
+    - name: Cache Task binary
+      id: cache
+      uses: actions/cache@v5
+      with:
+        path: /usr/local/bin/task
+        key: ${{ inputs.version }}-linux-amd64
+
+    - name: Install Task
+      if: steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      working-directory: ${{ runner.temp }}
+      run: |
+        set -euo pipefail
+
+        TASK_DOWNLOAD_URL="https://github.com/go-task/task/releases/download/v${{ inputs.version }}/task_linux_amd64.tar.gz"
+        curl -fsSL "$TASK_DOWNLOAD_URL" | tar -xz task
+        sudo install -m 755 task /usr/local/bin/task
+
+    - name: Print Task version
+      shell: bash
+      run: task --version
+
+    - name: Export Task environment
+      if: ${{ inputs.environment != '' }}
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        IFS=',' read -ra TASK_ENVIRONMENT_ENTRIES <<< "${{ inputs.environment }}"
+        for task_environment_entry in "${TASK_ENVIRONMENT_ENTRIES[@]}"; do
+          [[ "$task_environment_entry" =~ ^([^=]+)=(.+)$ ]] && echo "${BASH_REMATCH[1]}=${BASH_REMATCH[2]}" >> "$GITHUB_ENV"
+        done
+
+    - name: Run Task command
+      shell: bash
+      working-directory: ${{ inputs.directory }}
+      env:
+        TASK_X_REMOTE_TASKFILES: "1"
+      run: |
+        set -euo pipefail
+        echo "Running task ${{ inputs.command }}"
+        task --yes ${{ inputs.command }}

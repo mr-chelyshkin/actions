@@ -1,0 +1,47 @@
+name: Check job results
+description: Check dependency job results.
+
+inputs:
+  results:
+    description: Pass `toJSON(needs)` from the calling aggregator job.
+    required: true
+  ignored:
+    description: Space-separated job IDs where any result is tolerated.
+    required: false
+    default: ""
+  skipped:
+    description: Space-separated job IDs where "skipped" is tolerated (but failure is not).
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Check job results
+      shell: bash
+      env:
+        JOBS_RESULTS: ${{ inputs.results }}
+        JOBS_IGNORED: ${{ inputs.ignored }}
+        JOBS_SKIPPED: ${{ inputs.skipped }}
+      run: |
+        set -euo pipefail
+        failures=$(jq -r --arg ignored "$JOBS_IGNORED" --arg skipped "$JOBS_SKIPPED" '
+          ($ignored | split(" ") | map(select(length > 0))) as $ignored
+          | ($skipped | split(" ") | map(select(length > 0))) as $skipped
+          | [to_entries[]
+              | .key as $job
+              | .value.result as $result
+              | select(
+                  $result != "success"
+                  and ($ignored | index($job) | not)
+                  and ($result != "skipped" or ($skipped | index($job) | not))
+                )
+              | "\($job): \($result)"
+            ]
+          | join(", ")' <<< "$JOBS_RESULTS")
+
+        if [ -n "$failures" ]; then
+          printf '::error::Jobs not successful: %s\n' "$failures"
+          exit 1
+        fi
+        printf '%s\n' 'Job results check passed.'
