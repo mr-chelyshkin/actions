@@ -1,0 +1,31 @@
+name: Check tag branch
+description: Check that a tag commit is contained in a remote branch.
+
+inputs:
+  branch:
+    description: Branch to check.
+    required: false
+    default: main
+
+runs:
+  using: composite
+  steps:
+    - name: Verify tag commit
+      shell: bash
+      env:
+        DEFAULT_BRANCH: ${{ inputs.branch }}
+        TAG_REF: ${{ github.ref }}
+      run: |
+        set -euo pipefail
+
+        git fetch --no-tags origin "$DEFAULT_BRANCH:refs/remotes/origin/$DEFAULT_BRANCH"
+
+        tag_sha=$(git rev-parse "${TAG_REF}^{commit}")
+        branch_sha=$(git rev-parse "refs/remotes/origin/$DEFAULT_BRANCH")
+
+        if ! git merge-base --is-ancestor "$tag_sha" "$branch_sha"; then
+          echo "::error::Tag ${GITHUB_REF_NAME} points to ${tag_sha}, which is not contained in ${DEFAULT_BRANCH} (${branch_sha})."
+          exit 1
+        fi
+
+        echo "Tag ${GITHUB_REF_NAME} points to ${tag_sha}, contained in ${DEFAULT_BRANCH} (${branch_sha})."

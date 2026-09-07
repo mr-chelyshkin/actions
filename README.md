@@ -19,6 +19,7 @@ Reusable GitHub Actions and workflows for projects that use Taskfiles in local d
 |----------------------------------------------------|---------------------------------------------------|
 | [`invoke-taskfile`](invoke-taskfile/README.md)     | Run a Taskfile command with a cached Task binary. |
 | [`check-job-results`](check-job-results/README.md) | Combine job results into one final check.         |
+| [`check-tag-branch`](check-tag-branch/README.md) | Check a tag commit is contained in a branch. |
 
 ## Workflows
 
