@@ -16,4 +16,4 @@ permissions:
 jobs:
   label-check:
     name: Label check
-    uses: ./.github/workflows/reusable-require-changelog-label.yml
+    uses: ./.github/workflows/require-changelog-label.yml

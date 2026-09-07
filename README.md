@@ -22,10 +22,10 @@ Reusable GitHub Actions and workflows for projects that use Taskfiles in local d
 
 ## Workflows
 
-- [`reusable-static-site-ci`](.github/workflows/reusable-static-site-ci.yml)
-- [`reusable-terraform-ci`](.github/workflows/reusable-terraform-ci.yml)
-- [`reusable-require-changelog-label`](.github/workflows/reusable-require-changelog-label.yml)
-- [`reusable-aws-s3-site-release`](.github/workflows/reusable-aws-s3-site-release.yml)
+- [`static-site-ci`](.github/workflows/static-site-ci.yml)
+- [`terraform-ci`](.github/workflows/terraform-ci.yml)
+- [`require-changelog-label`](.github/workflows/require-changelog-label.yml)
+- [`aws-s3-site-release`](.github/workflows/aws-s3-site-release.yml)
 
 ## Usage
 
