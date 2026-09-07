@@ -3,7 +3,7 @@ name: PR workflow validation
 on:
   pull_request:
     branches: [main]
-    types: [opened, reopened, synchronize]
+    types: [opened, reopened, synchronize, labeled, unlabeled]
 
 concurrency:
   group: pr-workflow-validation-${{ github.event.pull_request.number }}
@@ -11,8 +11,13 @@ concurrency:
 
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
+  label-check:
+    name: Label check
+    uses: ./.github/workflows/require-changelog-label.yml
+
   actionlint:
     name: Actionlint
     runs-on: ubuntu-24.04
@@ -22,9 +27,9 @@ jobs:
       - name: Check GitHub Actions workflows
         uses: docker://rhysd/actionlint:1.7.12
 
-  check-job-results:
+  gate:
     if: always()
-    needs: [actionlint]
+    needs: [label-check, actionlint]
     runs-on: ubuntu-24.04
     permissions:
       contents: read
