@@ -6,4 +6,5 @@
 .idea/
 
 # Task runner cache
+.cache/
 .task/
