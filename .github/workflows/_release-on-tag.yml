@@ -23,24 +23,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Check tag commit is contained in main
-        shell: bash
-        env:
-          TAG_REF: ${{ github.ref }}
-        run: |
-          set -euo pipefail
-
-          git fetch --no-tags origin main:refs/remotes/origin/main
-
-          tag_sha=$(git rev-parse "${TAG_REF}^{commit}")
-          main_sha=$(git rev-parse refs/remotes/origin/main)
-
-          if ! git merge-base --is-ancestor "$tag_sha" "$main_sha"; then
-            echo "::error::Tag ${GITHUB_REF_NAME} points to ${tag_sha}, which is not contained in main (${main_sha})."
-            exit 1
-          fi
-
-          echo "Tag ${GITHUB_REF_NAME} points to ${tag_sha}, contained in main (${main_sha})."
+      - name: Verify tag is on main
+        uses: ./check-tag-branch
+        with:
+          branch: main
 
   release:
     name: release
