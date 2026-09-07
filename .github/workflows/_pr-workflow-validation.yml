@@ -21,3 +21,16 @@ jobs:
 
       - name: Check GitHub Actions workflows
         uses: docker://rhysd/actionlint:1.7.12
+
+  check-job-results:
+    if: always()
+    needs: [actionlint]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check job results
+        uses: ./check-job-results
+        with:
+          results: ${{ toJSON(needs) }}

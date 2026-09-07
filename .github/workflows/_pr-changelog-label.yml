@@ -17,3 +17,16 @@ jobs:
   label-check:
     name: Label check
     uses: ./.github/workflows/require-changelog-label.yml
+
+  check-job-results:
+    if: always()
+    needs: [label-check]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check job results
+        uses: ./check-job-results
+        with:
+          results: ${{ toJSON(needs) }}
