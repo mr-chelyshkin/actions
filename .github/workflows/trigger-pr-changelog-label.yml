@@ -1,0 +1,19 @@
+name: Pr changelog label
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, labeled, unlabeled]
+
+concurrency:
+  group: pr-label-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  label-check:
+    name: Label check
+    uses: ./.github/workflows/reusable-require-changelog-label.yml
