@@ -1,7 +1,23 @@
 name: Terraform CI
 
 on:
-  workflow_call: {}
+  workflow_call:
+    inputs:
+      environment:
+        description: Environment variables for Terraform plan as a JSON object.
+        type: string
+        required: false
+        default: '{}'
+      aws-region:
+        description: AWS region used when assuming the Terraform role.
+        type: string
+        required: false
+        default: ''
+      terraform-role-arn:
+        description: AWS role to assume through GitHub OIDC before Terraform plan.
+        type: string
+        required: false
+        default: ''
 
 jobs:
   fmt:
@@ -32,8 +48,18 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
+      id-token: write
+    env: ${{ fromJSON(inputs.environment) }}
     steps:
       - uses: actions/checkout@v6
+
+      - name: Configure AWS credentials
+        if: inputs.terraform-role-arn != ''
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          aws-region: ${{ inputs.aws-region }}
+          role-to-assume: ${{ inputs.terraform-role-arn }}
+          role-session-name: terraform-plan-${{ github.run_id }}
 
       - name: Run Terraform plan
         uses: mr-chelyshkin/actions/invoke-taskfile@v1
