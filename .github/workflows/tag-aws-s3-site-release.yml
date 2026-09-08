@@ -23,11 +23,11 @@ on:
         description: AWS role assumed through GitHub OIDC for apply and deploy.
         type: string
         required: true
-      terraform-image:
-        description: Terraform container image used to read Terraform outputs.
+      terraform-version:
+        description: Terraform CLI version used to apply Terraform and read outputs.
         type: string
         required: false
-        default: ghcr.io/mr-chelyshkin/ci/terraform:1.15.9
+        default: 1.15.9
       terraform-workdir:
         description: Terraform working directory relative to the workspace.
         type: string
@@ -62,19 +62,9 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
       - name: Verify tag commit belongs to the default branch
-        shell: bash
-        env:
-          DEFAULT_BRANCH: ${{ inputs.default-branch }}
-          REF: ${{ github.ref }}
-        run: |
-          set -euo pipefail
-          git fetch origin "$DEFAULT_BRANCH"
-          tag_commit=$(git rev-list -n 1 "$REF")
-          git rev-parse --verify "origin/$DEFAULT_BRANCH" >/dev/null
-          if ! git merge-base --is-ancestor "$tag_commit" "origin/$DEFAULT_BRANCH"; then
-            echo "::error::Tag commit is not an ancestor of origin/$DEFAULT_BRANCH"
-            exit 1
-          fi
+        uses: mr-chelyshkin/actions/check-tag-branch@v1
+        with:
+          branch: ${{ inputs.default-branch }}
 
   build:
     needs: verify
@@ -98,23 +88,16 @@ jobs:
     needs: [verify, build]
     runs-on: ubuntu-24.04
     outputs:
-      site-bucket-name: ${{ steps.read_outputs.outputs.site_bucket_name }}
-      cloudfront-distribution-id: ${{ steps.read_outputs.outputs.cloudfront_distribution_id }}
+      site-bucket-name: ${{ fromJSON(steps.apply.outputs.outputs).site_bucket_name.value }}
+      cloudfront-distribution-id: ${{ fromJSON(steps.apply.outputs.outputs).cloudfront_distribution_id.value }}
     permissions:
       contents: read
       id-token: write
     env:
-      AWS_REGION: ${{ inputs.aws-region }}
-      AWS_DEFAULT_REGION: ${{ inputs.aws-region }}
-      TF_BACKEND_BUCKET: ${{ inputs.terraform-state-bucket }}
-      TF_BACKEND_KEY: ${{ inputs.terraform-state-key }}
-      TF_BACKEND_REGION: ${{ inputs.terraform-state-region }}
       TF_VAR_aws_region: ${{ inputs.aws-region }}
       TF_VAR_domain_name: ${{ inputs.domain-name }}
       TF_VAR_site_bucket_name: ${{ inputs.site-bucket-name }}
       TF_VAR_acm_certificate_arn: ${{ inputs.acm-certificate-arn }}
-      TERRAFORM_IMAGE: ${{ inputs.terraform-image }}
-      TERRAFORM_WORKDIR: ${{ inputs.terraform-workdir }}
     steps:
       - uses: actions/checkout@v6
       - name: Configure AWS credentials
@@ -124,31 +107,14 @@ jobs:
           role-to-assume: ${{ inputs.terraform-role-arn }}
           role-session-name: solti-site-apply-${{ github.run_id }}
       - name: Apply Terraform
-        uses: mr-chelyshkin/actions/invoke-taskfile@v1
-        with: { command: cd/terraform-apply }
-      - name: Read Terraform outputs
-        id: read_outputs
-        shell: bash
-        run: |
-          set -euo pipefail
-          outputs=$(docker run --rm --init --pull=always \
-            --security-opt no-new-privileges \
-            --user "$(id -u):$(id -g)" \
-            --cap-drop=ALL \
-            --volume "$GITHUB_WORKSPACE:/workspace:rw" \
-            --volume "$GITHUB_WORKSPACE/.cache/terraform:/tmp/terraform-cache:ro" \
-            --workdir "/workspace/$TERRAFORM_WORKDIR" \
-            --env AWS_ACCESS_KEY_ID \
-            --env AWS_SECRET_ACCESS_KEY \
-            --env AWS_SESSION_TOKEN \
-            --env AWS_REGION \
-            --env AWS_DEFAULT_REGION \
-            "$TERRAFORM_IMAGE" \
-            terraform output -json)
-          site_bucket_name=$(jq -er '.site_bucket_name.value | select(type == "string" and length > 0)' <<<"$outputs")
-          cloudfront_distribution_id=$(jq -er '.cloudfront_distribution_id.value | select(type == "string" and length > 0)' <<<"$outputs")
-          echo "site_bucket_name=$site_bucket_name" >> "$GITHUB_OUTPUT"
-          echo "cloudfront_distribution_id=$cloudfront_distribution_id" >> "$GITHUB_OUTPUT"
+        id: apply
+        uses: mr-chelyshkin/actions/terraform-apply@v1
+        with:
+          backend-region: ${{ inputs.terraform-state-region }}
+          backend-bucket: ${{ inputs.terraform-state-bucket }}
+          backend-key: ${{ inputs.terraform-state-key }}
+          workdir: ${{ inputs.terraform-workdir }}
+          version: ${{ inputs.terraform-version }}
 
   deploy:
     needs: [build, apply]
@@ -156,11 +122,6 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    env:
-      AWS_REGION: ${{ inputs.aws-region }}
-      AWS_DEFAULT_REGION: ${{ inputs.aws-region }}
-      SITE_BUCKET_NAME: ${{ needs.apply.outputs['site-bucket-name'] }}
-      CLOUDFRONT_DISTRIBUTION_ID: ${{ needs.apply.outputs['cloudfront-distribution-id'] }}
     steps:
       - uses: actions/checkout@v6
       - name: Download site artifact
@@ -174,9 +135,65 @@ jobs:
           aws-region: ${{ inputs.aws-region }}
           role-to-assume: ${{ inputs.terraform-role-arn }}
           role-session-name: solti-site-deploy-${{ github.run_id }}
-      - name: Upload site and invalidate CloudFront
-        uses: mr-chelyshkin/actions/invoke-taskfile@v1
-        with: { command: cd/deploy }
+      - name: Publish immutable assets to S3
+        shell: bash
+        env:
+          SOURCE_DIR: ${{ github.workspace }}/app/dist
+          BUCKET: ${{ needs.apply.outputs['site-bucket-name'] }}
+        run: |
+          set -euo pipefail
+
+          test -d "$SOURCE_DIR"
+          test -d "$SOURCE_DIR/assets"
+
+          if [[ -L "$SOURCE_DIR/index.html" ]]; then
+            echo "::error::index.html must not be a symbolic link."
+            exit 1
+          fi
+
+          test -f "$SOURCE_DIR/index.html"
+
+          aws s3 sync \
+            "$SOURCE_DIR/assets" \
+            "s3://$BUCKET/assets" \
+            --no-follow-symlinks \
+            --cache-control "public,max-age=31536000,immutable" \
+            --only-show-errors
+      - name: Publish mutable files to S3
+        shell: bash
+        env:
+          SOURCE_DIR: ${{ github.workspace }}/app/dist
+          BUCKET: ${{ needs.apply.outputs['site-bucket-name'] }}
+        run: |
+          set -euo pipefail
+
+          aws s3 sync \
+            "$SOURCE_DIR" \
+            "s3://$BUCKET" \
+            --no-follow-symlinks \
+            --exclude "assets/*" \
+            --exclude "index.html" \
+            --cache-control "public,max-age=0,s-maxage=31536000,must-revalidate" \
+            --only-show-errors
+      - name: Publish index to S3
+        shell: bash
+        env:
+          SOURCE_DIR: ${{ github.workspace }}/app/dist
+          BUCKET: ${{ needs.apply.outputs['site-bucket-name'] }}
+        run: |
+          set -euo pipefail
+
+          aws s3 cp \
+            "$SOURCE_DIR/index.html" \
+            "s3://$BUCKET/index.html" \
+            --no-follow-symlinks \
+            --cache-control "public,max-age=0,s-maxage=31536000,must-revalidate" \
+            --content-type "text/html; charset=utf-8" \
+            --only-show-errors
+      - name: Invalidate CloudFront
+        uses: mr-chelyshkin/actions/aws-cloudfront-invalidate@v1
+        with:
+          distribution-id: ${{ needs.apply.outputs['cloudfront-distribution-id'] }}
 
   gh-release:
     needs: deploy

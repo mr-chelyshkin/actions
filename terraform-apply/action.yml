@@ -1,0 +1,109 @@
+name: Terraform apply
+description: Initialize and apply Terraform.
+
+inputs:
+  version:
+    description: Terraform CLI version.
+    required: false
+    default: 1.15.9
+  workdir:
+    description: Terraform working directory relative to the workspace.
+    required: false
+    default: .
+  backend-bucket:
+    description: S3 bucket containing Terraform state.
+    required: true
+  backend-key:
+    description: Terraform state object key.
+    required: true
+  backend-region:
+    description: AWS region containing the Terraform state bucket.
+    required: true
+  write-summary:
+    description: Write Terraform init and apply output to the GitHub step summary.
+    required: false
+    default: "true"
+
+outputs:
+  outputs:
+    description: Terraform outputs as JSON.
+    value: ${{ steps.apply.outputs.outputs }}
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ inputs.version }}
+        terraform_wrapper: false
+
+    - name: Apply Terraform
+      id: apply
+      shell: bash
+      working-directory: ${{ github.workspace }}/${{ inputs.workdir }}
+      env:
+        TF_BACKEND_REGION: ${{ inputs.backend-region }}
+        TF_BACKEND_BUCKET: ${{ inputs.backend-bucket }}
+        TF_BACKEND_KEY: ${{ inputs.backend-key }}
+        WRITE_SUMMARY: ${{ inputs.write-summary }}
+        CHECKPOINT_DISABLE: "1"
+        TF_IN_AUTOMATION: "1"
+      run: |
+        set -euo pipefail
+
+        case "$WRITE_SUMMARY" in
+          true|false) ;;
+          *)
+            echo "::error::write-summary must be 'true' or 'false'."
+            exit 2
+            ;;
+        esac
+
+        summary_open=false
+        close_summary() {
+          if [[ "$summary_open" == true ]]; then
+            printf '\n```\n' >> "$GITHUB_STEP_SUMMARY"
+          fi
+        }
+        trap close_summary EXIT
+
+        if [[ "$WRITE_SUMMARY" == true ]]; then
+          printf '## Terraform apply\n\n```text\n' >> "$GITHUB_STEP_SUMMARY"
+          summary_open=true
+        fi
+
+        run_terraform() {
+          if [[ "$WRITE_SUMMARY" == true ]]; then
+            terraform "$@" 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            terraform "$@"
+          fi
+        }
+
+        run_terraform init \
+          -input=false \
+          -reconfigure \
+          -lockfile=readonly \
+          "-backend-config=bucket=$TF_BACKEND_BUCKET" \
+          "-backend-config=region=$TF_BACKEND_REGION" \
+          "-backend-config=key=$TF_BACKEND_KEY" \
+          -backend-config=encrypt=true \
+          -backend-config=use_lockfile=true
+
+        run_terraform apply \
+          -auto-approve \
+          -input=false \
+          -lock-timeout=5m \
+          -no-color
+
+        outputs=$(terraform output -json)
+        delimiter="terraform_outputs_${RANDOM}_${RANDOM}_${RANDOM}"
+        while [[ $'\n'$outputs$'\n' == *$'\n'$delimiter$'\n'* ]]; do
+          delimiter="${delimiter}_"
+        done
+        {
+          printf 'outputs<<%s\n' "$delimiter"
+          printf '%s\n' "$outputs"
+          printf '%s\n' "$delimiter"
+        } >> "$GITHUB_OUTPUT"

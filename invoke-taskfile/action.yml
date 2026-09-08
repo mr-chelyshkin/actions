@@ -45,10 +45,12 @@ runs:
     - name: Export Task environment
       if: ${{ inputs.environment != '' }}
       shell: bash
+      env:
+        TASK_ENVIRONMENT: ${{ inputs.environment }}
       run: |
         set -euo pipefail
 
-        IFS=',' read -ra TASK_ENVIRONMENT_ENTRIES <<< "${{ inputs.environment }}"
+        IFS=',' read -ra TASK_ENVIRONMENT_ENTRIES <<< "$TASK_ENVIRONMENT"
         for task_environment_entry in "${TASK_ENVIRONMENT_ENTRIES[@]}"; do
           [[ "$task_environment_entry" =~ ^([^=]+)=(.+)$ ]] && echo "${BASH_REMATCH[1]}=${BASH_REMATCH[2]}" >> "$GITHUB_ENV"
         done
@@ -60,5 +62,4 @@ runs:
         TASK_X_REMOTE_TASKFILES: "1"
       run: |
         set -euo pipefail
-        echo "Running task ${{ inputs.command }}"
         task --yes ${{ inputs.command }}

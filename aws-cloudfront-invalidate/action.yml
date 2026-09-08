@@ -1,0 +1,51 @@
+name: AWS CloudFront invalidate
+description: Invalidate CloudFront cache.
+
+inputs:
+  distribution-id:
+    description: CloudFront distribution to invalidate.
+    required: true
+  paths:
+    description: Space-separated CloudFront paths to invalidate.
+    required: false
+    default: "/*"
+  wait:
+    description: Wait for the invalidation to complete.
+    required: false
+    default: "true"
+
+runs:
+  using: composite
+  steps:
+    - name: Invalidate CloudFront
+      shell: bash
+      env:
+        DISTRIBUTION_ID: ${{ inputs.distribution-id }}
+        INVALIDATION_PATHS: ${{ inputs.paths }}
+        WAIT: ${{ inputs.wait }}
+      run: |
+        set -euo pipefail
+
+        case "$WAIT" in
+          true|false) ;;
+          *)
+            echo "::error::wait must be 'true' or 'false'."
+            exit 2
+            ;;
+        esac
+
+        read -r -a paths <<< "$INVALIDATION_PATHS"
+
+        invalidation_id=$(
+          aws cloudfront create-invalidation \
+            --distribution-id "$DISTRIBUTION_ID" \
+            --query Invalidation.Id \
+            --paths "${paths[@]}" \
+            --output text
+        )
+
+        if [[ "$WAIT" == true ]]; then
+          aws cloudfront wait invalidation-completed \
+            --distribution-id "$DISTRIBUTION_ID" \
+            --id "$invalidation_id"
+        fi

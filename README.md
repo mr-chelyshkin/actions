@@ -15,18 +15,20 @@ Reusable GitHub Actions and workflows for projects that use Taskfiles in local d
 
 ## Actions
 
-| Action                                             | Purpose                                           |
-|----------------------------------------------------|---------------------------------------------------|
-| [`invoke-taskfile`](invoke-taskfile/README.md)     | Run a Taskfile command with a cached Task binary. |
-| [`check-job-results`](check-job-results/README.md) | Combine job results into one final check.         |
-| [`check-tag-branch`](check-tag-branch/README.md) | Check a tag commit is contained in a branch. |
+| Action                                                             | Purpose                                           |
+|--------------------------------------------------------------------|---------------------------------------------------|
+| [`invoke-taskfile`](invoke-taskfile/README.md)                     | Run a Taskfile command with a cached Task binary. |
+| [`check-changelog-label`](check-changelog-label/README.md)         | Check that a PR has at least one allowed label.   |
+| [`check-job-results`](check-job-results/README.md)                 | Combine job results into one final check.         |
+| [`check-tag-branch`](check-tag-branch/README.md)                   | Check a tag commit is contained in a branch.      |
+| [`terraform-apply`](terraform-apply/README.md)                     | Initialize and apply Terraform.                   |
+| [`aws-cloudfront-invalidate`](aws-cloudfront-invalidate/README.md) | Invalidate CloudFront and wait for completion.    |
 
 ## Workflows
 
-- [`static-site-ci`](.github/workflows/static-site-ci.yml)
-- [`terraform-ci`](.github/workflows/terraform-ci.yml)
-- [`require-changelog-label`](.github/workflows/require-changelog-label.yml)
-- [`aws-s3-site-release`](.github/workflows/aws-s3-site-release.yml)
+- [`pr-static-site`](.github/workflows/pr-static-site.yml)
+- [`pr-terraform`](.github/workflows/pr-terraform.yml)
+- [`tag-aws-s3-site-release`](.github/workflows/tag-aws-s3-site-release.yml)
 
 ## Usage
 
