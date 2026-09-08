@@ -14,6 +14,7 @@ runs:
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}
         PR_NUMBER: ${{ github.event.pull_request.number }}
         ALLOWED_LABELS: ${{ inputs.allowed-labels }}
       run: |

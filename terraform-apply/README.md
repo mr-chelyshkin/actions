@@ -39,10 +39,8 @@ steps:
 
 AWS credentials, region settings and project-specific `TF_VAR_*` values are inherited from the calling job's environment.
 
-The action runs `terraform init`, `terraform apply` and `terraform output -json`.
-The resulting JSON is returned in the `outputs` action output. 
-When`write-summary` is `true`, `init` and `apply` output is written to the job log and to a fenced `Terraform apply` section in the GitHub step summary. 
-Terraform failures remain action failures. 
-Set `write-summary: 'false'` to keep command output only in the job log.
+The action runs `terraform init`, `terraform apply` and `terraform output -json`. 
+The resulting JSON is returned in the `outputs`action output. 
+When `write-summary` is `true`, `init` and `apply` output is written to the job log. 
 
 Implementation: [action.yml](action.yml).

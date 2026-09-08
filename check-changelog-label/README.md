@@ -1,6 +1,6 @@
 # Check changelog label
 
-Verify that the current pull request has at least one label. 
+Verify that the current pull request has at least one label.
 Optionally restrict the check to an explicit list of allowed labels.
 
 The action must run in a pull request context:
