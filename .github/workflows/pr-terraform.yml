@@ -61,12 +61,20 @@ jobs:
           role-to-assume: ${{ inputs.terraform-role-arn }}
           role-session-name: terraform-plan-${{ github.run_id }}
 
-      - name: Run Terraform plan
+      - name: Prepare Terraform task
         uses: mr-chelyshkin/actions/invoke-taskfile@v1
         with:
-          command: |
-            ci/terraform-plan 2>&1 | {
-              printf '## Terraform plan\n\n~~~text\n'
-              cat
-              printf '\n~~~\n'
-            } | tee -a "$GITHUB_STEP_SUMMARY"
+          command: --dry ci/terraform-plan
+
+      - name: Run Terraform plan
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          task --yes --offline ci/terraform-plan | tee "$RUNNER_TEMP/terraform-plan.log"
+
+          {
+            printf '## Terraform plan\n\n~~~text\n'
+            sed -E $'s/\033\\[[0-?]*[ -/]*[@-~]//g' "$RUNNER_TEMP/terraform-plan.log"
+            printf '\n~~~\n'
+          } >> "$GITHUB_STEP_SUMMARY"
