@@ -15,12 +15,14 @@ Reusable GitHub Actions and workflows for projects that use Taskfiles in local d
 
 ## Actions
 
-| Action                                                     | Purpose                                           |
-|------------------------------------------------------------|---------------------------------------------------|
-| [`invoke-taskfile`](invoke-taskfile/README.md)             | Run a Taskfile command with a cached Task binary. |
-| [`check-changelog-label`](check-changelog-label/README.md) | Check that a PR has at least one allowed label.   |
-| [`check-job-results`](check-job-results/README.md)         | Combine job results into one final check.         |
-| [`check-tag-branch`](check-tag-branch/README.md)           | Check a tag commit is contained in a branch.      |
+| Action                                                             | Purpose                                           |
+|--------------------------------------------------------------------|---------------------------------------------------|
+| [`invoke-taskfile`](invoke-taskfile/README.md)                     | Run a Taskfile command with a cached Task binary. |
+| [`check-changelog-label`](check-changelog-label/README.md)         | Check that a PR has at least one allowed label.   |
+| [`check-job-results`](check-job-results/README.md)                 | Combine job results into one final check.         |
+| [`check-tag-branch`](check-tag-branch/README.md)                   | Check a tag commit is contained in a branch.      |
+| [`terraform-apply`](terraform-apply/README.md)                     | Initialize and apply Terraform.                   |
+| [`aws-cloudfront-invalidate`](aws-cloudfront-invalidate/README.md) | Invalidate CloudFront and wait for completion.    |
 
 ## Workflows
 
