@@ -35,21 +35,12 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Start Terraform plan summary
-        shell: bash
-        run: |
-          {
-            echo '## Terraform plan'
-            echo
-            echo '```text'
-          } >> "$GITHUB_STEP_SUMMARY"
-
       - name: Run Terraform plan
         uses: mr-chelyshkin/actions/invoke-taskfile@v1
         with:
-          command: ci/terraform-plan 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
-
-      - name: Finish Terraform plan summary
-        if: always()
-        shell: bash
-        run: echo '```' >> "$GITHUB_STEP_SUMMARY"
+          command: |
+            ci/terraform-plan 2>&1 | {
+              printf '## Terraform plan\n\n~~~text\n'
+              cat
+              printf '\n~~~\n'
+            } | tee -a "$GITHUB_STEP_SUMMARY"
