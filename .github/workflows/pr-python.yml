@@ -1,0 +1,49 @@
+name: Python CI
+
+on:
+  workflow_call: {}
+
+jobs:
+  fmt:
+    name: Python format
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check Python formatting
+        uses: mr-chelyshkin/actions/invoke-taskfile@v1
+        with: { command: ci/fmt }
+
+  lint:
+    name: Python lint
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - name: Lint Python
+        uses: mr-chelyshkin/actions/invoke-taskfile@v1
+        with: { command: ci/lint }
+
+  typecheck:
+    name: Python typecheck
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check Python types
+        uses: mr-chelyshkin/actions/invoke-taskfile@v1
+        with: { command: ci/typecheck }
+
+  package:
+    name: Python package
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build and check Python distributions
+        uses: mr-chelyshkin/actions/invoke-taskfile@v1
+        with: { command: ci/package-check }
