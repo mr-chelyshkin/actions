@@ -4,11 +4,11 @@
 
 <p align="center">
   <img src=".github/assets/readme-header.png"
-       alt="An engraved Jacquard machine executing punched-card instructions"
+       alt="github.com/mr-chelyshkin/actions"
        width="800">
 </p>
 
-Reusable GitHub Actions and workflows for projects that use Taskfiles in local development and CI.
+### Reusable GitHub Actions and workflows for projects that use Taskfiles in local development and CI.
 
 - Project-specific commands and configuration stay in consumer repositories.
 - Shared workflow orchestration lives here.
