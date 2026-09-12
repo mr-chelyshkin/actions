@@ -1,0 +1,58 @@
+name: Python release package
+
+on:
+  workflow_call:
+    inputs:
+      default-branch:
+        description: Branch that must contain the tagged commit.
+        type: string
+        required: false
+        default: main
+    outputs:
+      artifact-name:
+        description: Artifact containing the checked Python distributions.
+        value: ${{ jobs.package.outputs.artifact-name }}
+
+jobs:
+  verify:
+    name: Verify Python release tag
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - name: Verify tag commit belongs to the default branch
+        uses: mr-chelyshkin/actions/check-tag-branch@v1
+        with:
+          branch: ${{ inputs.default-branch }}
+      - name: Verify tag matches the package version
+        uses: mr-chelyshkin/actions/invoke-taskfile@v1
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        with: { command: ci/tag }
+
+  package:
+    name: Build Python release package
+    needs: verify
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    outputs:
+      artifact-name: python-dist-${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build and check Python distributions
+        uses: mr-chelyshkin/actions/invoke-taskfile@v1
+        with: { command: ci/package-check }
+      - name: Upload Python distributions
+        uses: actions/upload-artifact@v7
+        with:
+          name: python-dist-${{ github.sha }}
+          path: |
+            dist/*.whl
+            dist/*.tar.gz
+          if-no-files-found: error
+          retention-days: 7
