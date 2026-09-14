@@ -1,0 +1,74 @@
+name: Go release binary
+
+on:
+  workflow_call:
+    inputs:
+      default-branch:
+        description: Branch that must contain the tagged commit.
+        type: string
+        required: false
+        default: main
+    outputs:
+      artifact-name:
+        description: Artifact containing the checked Go binaries.
+        value: ${{ jobs.build.outputs.artifact-name }}
+
+jobs:
+  verify:
+    name: Verify Go release tag
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - name: Verify tag commit belongs to the default branch
+        uses: mr-chelyshkin/actions/check-tag-branch@v1
+        with:
+          branch: ${{ inputs.default-branch }}
+
+  checks:
+    name: Check Go release
+    needs: verify
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check Go formatting
+        uses: mr-chelyshkin/actions/invoke-taskfile@v1
+        with: { command: ci/fmt }
+      - name: Lint Go
+        uses: mr-chelyshkin/actions/invoke-taskfile@v1
+        with: { command: ci/lint }
+      - name: Run Go tests
+        uses: mr-chelyshkin/actions/invoke-taskfile@v1
+        with: { command: ci/test }
+      - name: Check Go vulnerabilities
+        uses: mr-chelyshkin/actions/invoke-taskfile@v1
+        with: { command: ci/vuln }
+
+  build:
+    name: Build Go release binaries
+    needs: checks
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    outputs:
+      artifact-name: golang-bin-${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build Go release binaries
+        uses: mr-chelyshkin/actions/invoke-taskfile@v1
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        with: { command: ci/build }
+      - name: Upload Go binaries
+        uses: actions/upload-artifact@v7
+        with:
+          name: golang-bin-${{ github.sha }}
+          path: bin/*
+          if-no-files-found: error
+          retention-days: 7
