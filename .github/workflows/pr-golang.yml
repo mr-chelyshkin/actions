@@ -1,0 +1,60 @@
+name: Go CI
+
+on:
+  workflow_call: {}
+
+jobs:
+  fmt:
+    name: Go format
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check Go formatting
+        uses: mr-chelyshkin/actions/invoke-taskfile@v1
+        with: { command: ci/fmt }
+
+  lint:
+    name: Go lint
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - name: Lint Go
+        uses: mr-chelyshkin/actions/invoke-taskfile@v1
+        with: { command: ci/lint }
+
+  test:
+    name: Go tests
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - name: Run Go tests
+        uses: mr-chelyshkin/actions/invoke-taskfile@v1
+        with: { command: ci/test }
+
+  build:
+    name: Go build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build Go binary
+        uses: mr-chelyshkin/actions/invoke-taskfile@v1
+        with: { command: ci/build }
+
+  vuln:
+    name: Go vulnerabilities
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check Go vulnerabilities
+        uses: mr-chelyshkin/actions/invoke-taskfile@v1
+        with: { command: ci/vuln }
