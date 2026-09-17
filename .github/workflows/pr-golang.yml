@@ -1,11 +1,33 @@
-name: Go CI
+name: Go CI on Pr
 
 on:
-  workflow_call: {}
+  workflow_call:
+    inputs:
+      fmt:
+        description: Run the ci/fmt job.
+        type: boolean
+        default: true
+      lint:
+        description: Run the ci/lint job.
+        type: boolean
+        default: true
+      test:
+        description: Run the ci/test job.
+        type: boolean
+        default: true
+      build:
+        description: Run the ci/build job.
+        type: boolean
+        default: true
+      vuln:
+        description: Run the ci/vuln job.
+        type: boolean
+        default: true
 
 jobs:
   fmt:
     name: Go format
+    if: inputs.fmt
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -17,6 +39,7 @@ jobs:
 
   lint:
     name: Go lint
+    if: inputs.lint
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -28,6 +51,7 @@ jobs:
 
   test:
     name: Go tests
+    if: inputs.test
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -39,6 +63,7 @@ jobs:
 
   build:
     name: Go build
+    if: inputs.build
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -50,6 +75,7 @@ jobs:
 
   vuln:
     name: Go vulnerabilities
+    if: inputs.vuln
     runs-on: ubuntu-24.04
     permissions:
       contents: read

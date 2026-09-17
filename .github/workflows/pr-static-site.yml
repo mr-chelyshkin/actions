@@ -1,4 +1,4 @@
-name: Static site CI
+name: Static CI on Pr
 
 on:
   workflow_call: {}
