@@ -1,8 +1,16 @@
-name: AWS S3 site release
+name: AWS S3 static release
 
 on:
   workflow_call:
     inputs:
+      artifact-name:
+        description: Artifact from this run containing the built static files and index.html at its root.
+        type: string
+        required: true
+      immutable-assets:
+        description: Publish fingerprinted assets/ with immutable cache headers.
+        type: boolean
+        default: true
       aws-region:
         description: AWS region containing the site bucket.
         type: string
@@ -45,113 +53,66 @@ on:
         description: ACM certificate ARN in us-east-1 for CloudFront.
         type: string
         required: true
-      default-branch:
-        description: Branch that must contain the tagged commit.
-        type: string
-        required: false
-        default: main
 
 jobs:
-  verify:
+  deploy:
     runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-      - name: Verify tag commit belongs to the default branch
-        uses: mr-chelyshkin/actions/check-tag-branch@v1
-        with:
-          branch: ${{ inputs.default-branch }}
-
-  build:
-    needs: verify
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v6
-      - name: Build static site
-        uses: mr-chelyshkin/actions/invoke-taskfile@v1
-        with: { command: ci/build }
-      - name: Upload site artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: static-site-${{ github.sha }}
-          path: app/dist/
-          if-no-files-found: error
-          retention-days: 7
-
-  apply:
-    needs: [verify, build]
-    runs-on: ubuntu-24.04
-    outputs:
-      site-bucket-name: ${{ fromJSON(steps.apply.outputs.outputs).site_bucket_name.value }}
-      cloudfront-distribution-id: ${{ fromJSON(steps.apply.outputs.outputs).cloudfront_distribution_id.value }}
     permissions:
       contents: read
       id-token: write
     env:
-      TF_VAR_aws_region: ${{ inputs.aws-region }}
-      TF_VAR_domain_name: ${{ inputs.domain-name }}
-      TF_VAR_site_bucket_name: ${{ inputs.site-bucket-name }}
-      TF_VAR_acm_certificate_arn: ${{ inputs.acm-certificate-arn }}
+      IMMUTABLE_ASSETS: ${{ inputs.immutable-assets }}
     steps:
       - uses: actions/checkout@v6
+      - name: Download static artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: ${{ runner.temp }}/static
+      - name: Validate static artifact
+        shell: bash
+        env:
+          SOURCE_DIR: ${{ runner.temp }}/static
+        run: |
+          set -euo pipefail
+
+          if [[ ! -f "$SOURCE_DIR/index.html" || -L "$SOURCE_DIR/index.html" ]]; then
+            echo "::error::Static artifact must contain a regular index.html at its root."
+            exit 1
+          fi
+
+          if [[ "$IMMUTABLE_ASSETS" == true && ! -d "$SOURCE_DIR/assets" ]]; then
+            echo "::error::immutable-assets requires an assets/ directory containing fingerprinted files."
+            exit 1
+          fi
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v6
         with:
           aws-region: ${{ inputs.aws-region }}
           role-to-assume: ${{ inputs.terraform-role-arn }}
-          role-session-name: solti-site-apply-${{ github.run_id }}
+          role-session-name: static-release-${{ github.run_id }}
       - name: Apply Terraform
         id: apply
         uses: mr-chelyshkin/actions/terraform-apply@v1
+        env:
+          TF_VAR_aws_region: ${{ inputs.aws-region }}
+          TF_VAR_domain_name: ${{ inputs.domain-name }}
+          TF_VAR_site_bucket_name: ${{ inputs.site-bucket-name }}
+          TF_VAR_acm_certificate_arn: ${{ inputs.acm-certificate-arn }}
         with:
           backend-region: ${{ inputs.terraform-state-region }}
           backend-bucket: ${{ inputs.terraform-state-bucket }}
           backend-key: ${{ inputs.terraform-state-key }}
           workdir: ${{ inputs.terraform-workdir }}
           version: ${{ inputs.terraform-version }}
-
-  deploy:
-    needs: [build, apply]
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-      id-token: write
-    steps:
-      - uses: actions/checkout@v6
-      - name: Download site artifact
-        uses: actions/download-artifact@v8
-        with:
-          name: static-site-${{ github.sha }}
-          path: app/dist
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v6
-        with:
-          aws-region: ${{ inputs.aws-region }}
-          role-to-assume: ${{ inputs.terraform-role-arn }}
-          role-session-name: solti-site-deploy-${{ github.run_id }}
       - name: Publish immutable assets to S3
+        if: inputs.immutable-assets
         shell: bash
         env:
-          SOURCE_DIR: ${{ github.workspace }}/app/dist
-          BUCKET: ${{ needs.apply.outputs['site-bucket-name'] }}
+          SOURCE_DIR: ${{ runner.temp }}/static
+          BUCKET: ${{ fromJSON(steps.apply.outputs.outputs).site_bucket_name.value }}
         run: |
           set -euo pipefail
-
-          test -d "$SOURCE_DIR"
-          test -d "$SOURCE_DIR/assets"
-
-          if [[ -L "$SOURCE_DIR/index.html" ]]; then
-            echo "::error::index.html must not be a symbolic link."
-            exit 1
-          fi
-
-          test -f "$SOURCE_DIR/index.html"
 
           aws s3 sync \
             "$SOURCE_DIR/assets" \
@@ -162,24 +123,28 @@ jobs:
       - name: Publish mutable files to S3
         shell: bash
         env:
-          SOURCE_DIR: ${{ github.workspace }}/app/dist
-          BUCKET: ${{ needs.apply.outputs['site-bucket-name'] }}
+          SOURCE_DIR: ${{ runner.temp }}/static
+          BUCKET: ${{ fromJSON(steps.apply.outputs.outputs).site_bucket_name.value }}
         run: |
           set -euo pipefail
+
+          exclude_args=(--exclude "index.html")
+          if [[ "$IMMUTABLE_ASSETS" == true ]]; then
+            exclude_args+=(--exclude "assets/*")
+          fi
 
           aws s3 sync \
             "$SOURCE_DIR" \
             "s3://$BUCKET" \
             --no-follow-symlinks \
-            --exclude "assets/*" \
-            --exclude "index.html" \
+            "${exclude_args[@]}" \
             --cache-control "public,max-age=0,s-maxage=31536000,must-revalidate" \
             --only-show-errors
       - name: Publish index to S3
         shell: bash
         env:
-          SOURCE_DIR: ${{ github.workspace }}/app/dist
-          BUCKET: ${{ needs.apply.outputs['site-bucket-name'] }}
+          SOURCE_DIR: ${{ runner.temp }}/static
+          BUCKET: ${{ fromJSON(steps.apply.outputs.outputs).site_bucket_name.value }}
         run: |
           set -euo pipefail
 
@@ -193,19 +158,4 @@ jobs:
       - name: Invalidate CloudFront
         uses: mr-chelyshkin/actions/aws-cloudfront-invalidate@v1
         with:
-          distribution-id: ${{ needs.apply.outputs['cloudfront-distribution-id'] }}
-
-  gh-release:
-    needs: deploy
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: write
-    steps:
-      - name: Create GitHub release
-        uses: softprops/action-gh-release@v3
-        with:
-          draft: false
-          prerelease: false
-          tag_name: ${{ github.ref_name }}
-          name: ${{ github.ref_name }}
-          generate_release_notes: true
+          distribution-id: ${{ fromJSON(steps.apply.outputs.outputs).cloudfront_distribution_id.value }}

@@ -30,7 +30,7 @@
 - [`pr-python`](.github/workflows/pr-python.yml)
 - [`pr-static-site`](.github/workflows/pr-static-site.yml)
 - [`pr-terraform`](.github/workflows/pr-terraform.yml)
-- [`tag-aws-s3-site-release`](.github/workflows/tag-aws-s3-site-release.yml)
+- [`tag-aws-s3-static-release`](.github/workflows/tag-aws-s3-static-release.yml)
 - [`tag-golang-binary`](.github/workflows/tag-golang-binary.yml)
 - [`tag-python-package`](.github/workflows/tag-python-package.yml)
 
