@@ -1,33 +1,10 @@
 name: Go CI on Pr
 
 on:
-  workflow_call:
-    inputs:
-      fmt:
-        description: Run the ci/fmt job.
-        type: boolean
-        default: true
-      lint:
-        description: Run the ci/lint job.
-        type: boolean
-        default: true
-      test:
-        description: Run the ci/test job.
-        type: boolean
-        default: true
-      build:
-        description: Run the ci/build job.
-        type: boolean
-        default: true
-      vuln:
-        description: Run the ci/vuln job.
-        type: boolean
-        default: true
+  workflow_call: {}
 
 jobs:
   fmt:
-    name: Go format
-    if: inputs.fmt
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -38,8 +15,6 @@ jobs:
         with: { command: ci/fmt }
 
   lint:
-    name: Go lint
-    if: inputs.lint
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -50,8 +25,6 @@ jobs:
         with: { command: ci/lint }
 
   test:
-    name: Go tests
-    if: inputs.test
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -61,21 +34,7 @@ jobs:
         uses: mr-chelyshkin/actions/invoke-taskfile@v1
         with: { command: ci/test }
 
-  build:
-    name: Go build
-    if: inputs.build
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v6
-      - name: Build Go binary
-        uses: mr-chelyshkin/actions/invoke-taskfile@v1
-        with: { command: ci/build }
-
   vuln:
-    name: Go vulnerabilities
-    if: inputs.vuln
     runs-on: ubuntu-24.04
     permissions:
       contents: read
