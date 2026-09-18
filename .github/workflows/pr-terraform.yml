@@ -18,6 +18,18 @@ on:
         type: string
         required: false
         default: ''
+      cache-path:
+        description: Host provider cache paths to preserve. Empty disables provider caching.
+        type: string
+        default: ''
+      cache-key-prefix:
+        description: Cache namespace. Change it to invalidate previous caches.
+        type: string
+        default: terraform
+      cache-dependency-path:
+        description: Lock file path or glob to hash after checkout for provider changes.
+        type: string
+        default: '**/.terraform.lock.hcl'
 
 jobs:
   fmt:
@@ -36,6 +48,15 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v6
+      - &terraform-cache
+        name: Cache Terraform providers
+        if: inputs.cache-path != ''
+        uses: actions/cache@v5
+        with:
+          path: ${{ inputs.cache-path }}
+          key: ${{ inputs.cache-key-prefix }}-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles(inputs.cache-dependency-path) }}
+          restore-keys: |
+            ${{ inputs.cache-key-prefix }}-${{ runner.os }}-${{ runner.arch }}-
       - name: Validate Terraform
         uses: mr-chelyshkin/actions/invoke-taskfile@v1
         with: { command: ci/terraform-validate }
@@ -49,6 +70,7 @@ jobs:
     env: ${{ fromJSON(inputs.environment) }}
     steps:
       - uses: actions/checkout@v6
+      - *terraform-cache
 
       - name: Configure AWS credentials
         if: inputs.terraform-role-arn != ''
