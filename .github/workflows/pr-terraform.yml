@@ -21,7 +21,6 @@ on:
 
 jobs:
   fmt:
-    name: Terraform format
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -32,7 +31,6 @@ jobs:
         with: { command: ci/terraform-fmt }
 
   validate:
-    name: Terraform validate
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -43,7 +41,6 @@ jobs:
         with: { command: ci/terraform-validate }
 
   plan:
-    name: Terraform plan
     needs: [fmt, validate]
     runs-on: ubuntu-24.04
     permissions:

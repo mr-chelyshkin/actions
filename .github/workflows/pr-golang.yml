@@ -1,7 +1,20 @@
 name: Go CI on Pr
 
 on:
-  workflow_call: {}
+  workflow_call:
+    inputs:
+      cache-path:
+        description: Host cache paths to preserve. Empty disables Go caching.
+        type: string
+        default: ''
+      cache-key-prefix:
+        description: Cache namespace. Change it to invalidate previous caches.
+        type: string
+        default: go
+      cache-dependency-path:
+        description: File path or glob to hash after checkout for dependency changes.
+        type: string
+        default: '**/go.sum'
 
 jobs:
   fmt:
@@ -20,6 +33,16 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v6
+      - &go-cache
+        name: Cache Go modules and build results
+        if: inputs.cache-path != ''
+        uses: actions/cache@v5
+        with:
+          path: ${{ inputs.cache-path }}
+          key: ${{ inputs.cache-key-prefix }}-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-${{ hashFiles(inputs.cache-dependency-path) }}-${{ github.sha }}
+          restore-keys: |
+            ${{ inputs.cache-key-prefix }}-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-${{ hashFiles(inputs.cache-dependency-path) }}-
+            ${{ inputs.cache-key-prefix }}-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-
       - name: Lint Go
         uses: mr-chelyshkin/actions/invoke-taskfile@v1
         with: { command: ci/lint }
@@ -30,6 +53,7 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v6
+      - *go-cache
       - name: Run Go tests
         uses: mr-chelyshkin/actions/invoke-taskfile@v1
         with: { command: ci/test }
@@ -40,6 +64,7 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v6
+      - *go-cache
       - name: Check Go vulnerabilities
         uses: mr-chelyshkin/actions/invoke-taskfile@v1
         with: { command: ci/vuln }
