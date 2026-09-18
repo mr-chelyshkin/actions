@@ -24,19 +24,46 @@ runs:
       id: cache
       uses: actions/cache@v5
       with:
-        path: /usr/local/bin/task
-        key: ${{ inputs.version }}-linux-amd64
+        path: ${{ runner.temp }}/task-bin/${{ inputs.version }}
+        key: task-${{ inputs.version }}-${{ runner.os }}-${{ runner.arch }}
 
     - name: Install Task
       if: steps.cache.outputs.cache-hit != 'true'
       shell: bash
-      working-directory: ${{ runner.temp }}
+      env:
+        TASK_VERSION: ${{ inputs.version }}
+        TASK_INSTALL_DIR: ${{ runner.temp }}/task-bin/${{ inputs.version }}
       run: |
         set -euo pipefail
 
-        TASK_DOWNLOAD_URL="https://github.com/go-task/task/releases/download/v${{ inputs.version }}/task_linux_amd64.tar.gz"
-        curl -fsSL "$TASK_DOWNLOAD_URL" | tar -xz task
-        sudo install -m 755 task /usr/local/bin/task
+        case "$RUNNER_OS" in
+          Linux) task_os=linux ;;
+          macOS) task_os=darwin ;;
+          *)
+            echo "::error::Unsupported runner OS: $RUNNER_OS"
+            exit 1
+            ;;
+        esac
+
+        case "$RUNNER_ARCH" in
+          X64) task_arch=amd64 ;;
+          ARM64) task_arch=arm64 ;;
+          *)
+            echo "::error::Unsupported runner architecture: $RUNNER_ARCH"
+            exit 1
+            ;;
+        esac
+
+        task_download_url="https://github.com/go-task/task/releases/download/v${TASK_VERSION}/task_${task_os}_${task_arch}.tar.gz"
+        mkdir -p "$TASK_INSTALL_DIR"
+        curl -fsSL "$task_download_url" | tar -xz -C "$TASK_INSTALL_DIR" task
+        chmod 755 "$TASK_INSTALL_DIR/task"
+
+    - name: Add Task to PATH
+      shell: bash
+      env:
+        TASK_INSTALL_DIR: ${{ runner.temp }}/task-bin/${{ inputs.version }}
+      run: printf '%s\n' "$TASK_INSTALL_DIR" >> "$GITHUB_PATH"
 
     - name: Print Task version
       shell: bash

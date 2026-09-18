@@ -39,12 +39,12 @@ The action runs `task --yes ci/build` in the selected directory.
 
 ## Results
 
-| Situation                                     | Result                                                       |
-|-----------------------------------------------|--------------------------------------------------------------|
-| Cached binary found for the requested version | Restore `/usr/local/bin/task`; skip installation.            |
-| No cached binary                              | Download the Linux amd64 release and install it with `sudo`. |
-| Task command exits with code `0`              | Step succeeds.                                               |
-| Task command exits with a nonzero code        | Step fails.                                                  |
-| Download or installation fails                | Step fails before running the Task command.                  |
+| Situation                                        | Result                                                 |
+|--------------------------------------------------|--------------------------------------------------------|
+| Cached binary found for the version and platform | Restore Task under `runner.temp` and add it to `PATH`. |
+| No cached binary                                 | Download the matching release and add it to `PATH`.    |
+| Task command exits with code `0`                 | Step succeeds.                                         |
+| Task command exits with a nonzero code           | Step fails.                                            |
+| Download or installation fails                   | Step fails before running the Task command.            |
 
 Implementation: [action.yml](action.yml).
