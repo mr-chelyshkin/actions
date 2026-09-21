@@ -27,6 +27,7 @@
 ## Workflows
 
 - [`pr-golang`](.github/workflows/pr-golang.yml)
+- [`pr-nix`](.github/workflows/pr-nix.yml)
 - [`pr-python`](.github/workflows/pr-python.yml)
 - [`pr-static-site`](.github/workflows/pr-static-site.yml)
 - [`pr-terraform`](.github/workflows/pr-terraform.yml)
