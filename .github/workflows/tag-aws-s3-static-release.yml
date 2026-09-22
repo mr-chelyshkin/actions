@@ -105,12 +105,24 @@ jobs:
           backend-key: ${{ inputs.terraform-state-key }}
           workdir: ${{ inputs.terraform-workdir }}
           version: ${{ inputs.terraform-version }}
+      - name: Read deployment outputs
+        id: site
+        shell: bash
+        env:
+          TF_OUTPUTS: ${{ steps.apply.outputs.outputs }}
+        run: |
+          set -euo pipefail
+
+          bucket=$(jq -er '.site_bucket_name.value | strings | select(length > 0)' <<< "$TF_OUTPUTS")
+          distribution_id=$(jq -er '.cloudfront_distribution_id.value | strings | select(length > 0)' <<< "$TF_OUTPUTS")
+
+          printf 'bucket=%s\ndistribution-id=%s\n' "$bucket" "$distribution_id" >> "$GITHUB_OUTPUT"
       - name: Publish immutable assets to S3
         if: inputs.immutable-assets
         shell: bash
         env:
           SOURCE_DIR: ${{ runner.temp }}/static
-          BUCKET: ${{ fromJSON(steps.apply.outputs.outputs).site_bucket_name.value }}
+          BUCKET: ${{ steps.site.outputs.bucket }}
         run: |
           set -euo pipefail
 
@@ -124,7 +136,7 @@ jobs:
         shell: bash
         env:
           SOURCE_DIR: ${{ runner.temp }}/static
-          BUCKET: ${{ fromJSON(steps.apply.outputs.outputs).site_bucket_name.value }}
+          BUCKET: ${{ steps.site.outputs.bucket }}
         run: |
           set -euo pipefail
 
@@ -144,7 +156,7 @@ jobs:
         shell: bash
         env:
           SOURCE_DIR: ${{ runner.temp }}/static
-          BUCKET: ${{ fromJSON(steps.apply.outputs.outputs).site_bucket_name.value }}
+          BUCKET: ${{ steps.site.outputs.bucket }}
         run: |
           set -euo pipefail
 
@@ -158,4 +170,4 @@ jobs:
       - name: Invalidate CloudFront
         uses: mr-chelyshkin/actions/aws-cloudfront-invalidate@v1
         with:
-          distribution-id: ${{ fromJSON(steps.apply.outputs.outputs).cloudfront_distribution_id.value }}
+          distribution-id: ${{ steps.site.outputs.distribution-id }}
