@@ -14,6 +14,10 @@ inputs:
     description: Git version sort direction, asc or desc.
     required: false
     default: desc
+  ignore-build-metadata:
+    description: Ignore everything after '+' when grouping tags.
+    required: false
+    default: 'false'
   count:
     description: Maximum number of matching tags to return. Must be a positive integer.
     required: false
@@ -35,6 +39,7 @@ runs:
         TAG_PATTERN: ${{ inputs.pattern }}
         TAG_SORT: ${{ inputs.sort }}
         TAG_COUNT: ${{ inputs.count }}
+        IGNORE_BUILD_METADATA: ${{ inputs.ignore-build-metadata }}
         GH_TOKEN: ${{ github.token }}
         GH_REPO: ${{ github.repository }}
         LC_ALL: C
@@ -44,6 +49,10 @@ runs:
         case "$REQUIRE_RELEASE" in
           true|false) ;;
           *) echo '::error::Input "require-release" must be true or false.'; exit 1 ;;
+        esac
+        case "$IGNORE_BUILD_METADATA" in
+          true|false) ;;
+          *) echo '::error::Input "ignore-build-metadata" must be true or false.'; exit 1 ;;
         esac
         case "$TAG_SORT" in
           asc) sort_key=version:refname ;;
@@ -72,6 +81,12 @@ runs:
           [[ -n "$tag" ]] || continue
           if [[ "$REQUIRE_RELEASE" == true ]] &&
              ! jq -e --arg tag "$tag" 'index($tag) != null' <<< "$released_tags" > /dev/null; then
+            continue
+          fi
+
+          if [[ "$IGNORE_BUILD_METADATA" == true ]] &&
+             jq -e --arg version "${tag%%+*}" \
+               'any(.[]; (.tag | split("+")[0]) == $version)' <<< "$tags" > /dev/null; then
             continue
           fi
 
