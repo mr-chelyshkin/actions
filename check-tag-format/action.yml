@@ -2,8 +2,12 @@ name: Check tag format
 description: Check a tag name against a configurable regular expression.
 
 inputs:
+  tag:
+    description: Tag to check.
+    required: false
+    default: ${{ github.ref_name }}
   pattern:
-    description: Bash extended regular expression matched against github.ref_name.
+    description: Bash extended regular expression matched against the tag.
     required: false
     default: '^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-(0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)(\.(0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$'
 
@@ -13,7 +17,7 @@ runs:
     - name: Verify tag format
       shell: bash
       env:
-        TAG_NAME: ${{ github.ref_name }}
+        TAG_NAME: ${{ inputs.tag }}
         TAG_PATTERN: ${{ inputs.pattern }}
         LC_ALL: C
       run: |

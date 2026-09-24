@@ -1,6 +1,6 @@
 # Check tag format
 
-Check `github.ref_name` against a regular expression. Use this action in a tag-triggered workflow; checkout is not required.
+Check a tag against a regular expression. Defaults to `github.ref_name`; checkout is not required.
 
 ## Default: SemVer with a `v` prefix
 
@@ -36,6 +36,7 @@ Replace `<ref>` with a published tag or commit that contains this action.
 
 | Input     | Value                                                                         |
 |-----------|-------------------------------------------------------------------------------|
+| `tag`     | Tag to check. Defaults to `github.ref_name`. |
 | `pattern` | Bash extended regular expression. Defaults to SemVer 2.0.0 with a `v` prefix. |
 
 Use `^` and `$` to match the complete tag name. Patterns use Bash's `=~` operator and POSIX extended syntax, not JavaScript or PCRE syntax. Matching is case-sensitive and uses the C locale.

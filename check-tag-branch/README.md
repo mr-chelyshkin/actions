@@ -16,9 +16,10 @@ steps:
 
 ## Inputs
 
-| Input    | Value                             |
-|----------|-----------------------------------|
-| `branch` | Branch to check. Default: `main`. |
+| Input    | Value                                     |
+|----------|-------------------------------------------|
+| `tag`    | Tag to check. Default: `github.ref_name`. |
+| `branch` | Branch to check. Default: `main`.         |
 
 The action fails when the tag commit is not an ancestor of the selected remote branch.
 
