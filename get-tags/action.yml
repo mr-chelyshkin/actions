@@ -1,0 +1,85 @@
+name: Get tags
+description: Select repository tags with Git version sorting and return their commit SHAs.
+
+inputs:
+  require-release:
+    description: Only include tags with a published GitHub Release.
+    required: false
+    default: 'false'
+  pattern:
+    description: Glob matched against the tag name.
+    required: false
+    default: '*'
+  sort:
+    description: Git version sort direction, asc or desc.
+    required: false
+    default: desc
+  count:
+    description: Maximum number of matching tags to return. Must be a positive integer.
+    required: false
+    default: '1'
+
+outputs:
+  tags:
+    description: JSON array of objects with tag and commit_sha fields, in the requested order.
+    value: ${{ steps.tags.outputs.tags }}
+
+runs:
+  using: composite
+  steps:
+    - name: Select tags
+      id: tags
+      shell: bash
+      env:
+        REQUIRE_RELEASE: ${{ inputs.require-release }}
+        TAG_PATTERN: ${{ inputs.pattern }}
+        TAG_SORT: ${{ inputs.sort }}
+        TAG_COUNT: ${{ inputs.count }}
+        GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}
+        LC_ALL: C
+      run: |
+        set -euo pipefail
+
+        case "$REQUIRE_RELEASE" in
+          true|false) ;;
+          *) echo '::error::Input "require-release" must be true or false.'; exit 1 ;;
+        esac
+        case "$TAG_SORT" in
+          asc) sort_key=version:refname ;;
+          desc) sort_key=-version:refname ;;
+          *) echo '::error::Input "sort" must be asc or desc.'; exit 1 ;;
+        esac
+        if [[ ! "$TAG_COUNT" =~ ^[1-9][0-9]*$ ]]; then
+          echo '::error::Input "count" must be a positive integer without leading zeros.'
+          exit 1
+        fi
+        if [[ -z "$TAG_PATTERN" ]]; then
+          echo '::error::Input "pattern" must not be empty.'
+          exit 1
+        fi
+
+        tag_names=$(git tag --list --no-column --sort="$sort_key" -- "$TAG_PATTERN")
+        released_tags='[]'
+        if [[ "$REQUIRE_RELEASE" == true ]]; then
+          released_tags=$(gh api --paginate --slurp "repos/$GH_REPO/releases?per_page=100" |
+            jq -ce '[.[][] | select(.draft == false and .published_at != null) | .tag_name]')
+        fi
+
+        tags='[]'
+        matched=0
+        while IFS= read -r tag; do
+          [[ -n "$tag" ]] || continue
+          if [[ "$REQUIRE_RELEASE" == true ]] &&
+             ! jq -e --arg tag "$tag" 'index($tag) != null' <<< "$released_tags" > /dev/null; then
+            continue
+          fi
+
+          commit_sha=$(git rev-parse --verify "refs/tags/${tag}^{commit}")
+          tags=$(jq -c --arg tag "$tag" --arg sha "$commit_sha" \
+            '. + [{tag: $tag, commit_sha: $sha}]' <<< "$tags")
+          matched=$((matched + 1))
+          [[ "$matched" != "$TAG_COUNT" ]] || break
+        done <<< "$tag_names"
+
+        printf 'tags=%s\n' "$tags" >> "$GITHUB_OUTPUT"

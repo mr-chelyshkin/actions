@@ -22,6 +22,7 @@
 | [`check-job-results`](check-job-results/README.md)                 | Combine job results into one final check.         |
 | [`check-tag-branch`](check-tag-branch/README.md)                   | Check a tag commit is contained in a branch.      |
 | [`check-tag-format`](check-tag-format/README.md)                   | Check a tag name against a configurable pattern.  |
+| [`get-tags`](get-tags/README.md)                                   | Select version-sorted tags and their commit SHAs. |
 | [`terraform-apply`](terraform-apply/README.md)                     | Initialize and apply Terraform.                   |
 | [`aws-cloudfront-invalidate`](aws-cloudfront-invalidate/README.md) | Invalidate CloudFront and wait for completion.    |
 
