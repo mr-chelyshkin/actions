@@ -24,13 +24,13 @@ steps:
 
 ## Inputs
 
-| Input             | Value                                                                                |
-|-------------------|--------------------------------------------------------------------------------------|
-| `require-release` | Require a published GitHub Release. Default: `'false'`.                              |
-| `pattern`         | Nonempty tag-name glob, such as `v*` or `v0.1.*`. Default: `'*'`.                    |
-| `sort`            | Git version order: `asc` or `desc`. Default: `desc` (higher versions first).         |
+| Input                   | Value                                                                                                |
+|-------------------------|------------------------------------------------------------------------------------------------------|
+| `require-release`       | Require a published GitHub Release. Default: `'false'`.                                              |
+| `pattern`               | Nonempty tag-name glob, such as `v*` or `v0.1.*`. Default: `'*'`.                                    |
+| `sort`                  | Git version order: `asc` or `desc`. Default: `desc` (higher versions first).                         |
 | `ignore-build-metadata` | Ignore `+...` when grouping versions; keep the first matching tag in sort order. Default: `'false'`. |
-| `count`           | Maximum results after filtering and grouping. Positive integer, no leading zeros. Default: `'1'`. |
+| `count`                 | Maximum results after filtering and grouping. Positive integer, no leading zeros. Default: `'1'`.    |
 
 Release filtering excludes drafts and includes published prereleases. Tags are read from the existing checkout without fetching.
 
