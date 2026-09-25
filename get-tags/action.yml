@@ -2,6 +2,10 @@ name: Get tags
 description: Select repository tags with Git version sorting and return their commit SHAs.
 
 inputs:
+  repository:
+    description: Repository containing the checked-out tags.
+    required: false
+    default: ${{ github.repository }}
   require-release:
     description: Only include tags with a published GitHub Release.
     required: false
@@ -41,7 +45,7 @@ runs:
         TAG_COUNT: ${{ inputs.count }}
         IGNORE_BUILD_METADATA: ${{ inputs.ignore-build-metadata }}
         GH_TOKEN: ${{ github.token }}
-        GH_REPO: ${{ github.repository }}
+        GH_REPO: ${{ inputs.repository }}
         LC_ALL: C
       run: |
         set -euo pipefail

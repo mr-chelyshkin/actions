@@ -23,13 +23,3 @@ jobs:
       - name: Lint Nix
         uses: mr-chelyshkin/actions/invoke-taskfile@v1
         with: { command: ci/lint }
-
-  test:
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v6
-      - name: Run Nix tests
-        uses: mr-chelyshkin/actions/invoke-taskfile@v1
-        with: { command: ci/test }

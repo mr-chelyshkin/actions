@@ -2,7 +2,7 @@
 
 Select repository tags using Git version order and return their commit SHAs.
 
-Check out the current repository with all tags. The runner needs Bash, Git, and `jq`; release filtering also needs `gh`.
+Check out the selected repository with all tags. The runner needs Bash, Git, and `jq`; release filtering also needs `gh`.
 
 ```yaml
 permissions:
@@ -26,6 +26,7 @@ steps:
 
 | Input                   | Value                                                                                                |
 |-------------------------|------------------------------------------------------------------------------------------------------|
+| `repository`            | Repository matching the checkout. Default: `github.repository`. |
 | `require-release`       | Require a published GitHub Release. Default: `'false'`.                                              |
 | `pattern`               | Nonempty tag-name glob, such as `v*` or `v0.1.*`. Default: `'*'`.                                    |
 | `sort`                  | Git version order: `asc` or `desc`. Default: `desc` (higher versions first).                         |
