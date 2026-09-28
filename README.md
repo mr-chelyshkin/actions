@@ -37,6 +37,9 @@
 - [`tag-golang-binary`](.github/workflows/tag-golang-binary.yml)
 - [`tag-python-package`](.github/workflows/tag-python-package.yml)
 
+`pr-golang` accepts an optional `environment` input and passes it to each Task invocation.
+Use comma-separated `KEY=value` pairs, as documented for [`invoke-taskfile`](invoke-taskfile/README.md).
+
 ## Usage
 
 Replace `<ref>` with a published tag or commit.
