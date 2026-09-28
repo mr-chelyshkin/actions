@@ -11,9 +11,9 @@ inputs:
     required: false
     default: 'false'
   pattern:
-    description: Glob matched against the tag name.
+    description: Bash extended regular expression matched against the tag name.
     required: false
-    default: '*'
+    default: '.*'
   sort:
     description: Git version sort direction, asc or desc.
     required: false
@@ -72,7 +72,14 @@ runs:
           exit 1
         fi
 
-        tag_names=$(git tag --list --no-column --sort="$sort_key" -- "$TAG_PATTERN")
+        if [[ '' =~ $TAG_PATTERN ]]; then
+          :
+        elif [[ $? -eq 2 ]]; then
+          echo '::error::Input "pattern" is not a valid Bash extended regular expression.'
+          exit 1
+        fi
+
+        tag_names=$(git tag --list --no-column --sort="$sort_key")
         released_tags='[]'
         if [[ "$REQUIRE_RELEASE" == true ]]; then
           released_tags=$(gh api --paginate --slurp "repos/$GH_REPO/releases?per_page=100" |
@@ -83,6 +90,7 @@ runs:
         matched=0
         while IFS= read -r tag; do
           [[ -n "$tag" ]] || continue
+          [[ "$tag" =~ $TAG_PATTERN ]] || continue
           if [[ "$REQUIRE_RELEASE" == true ]] &&
              ! jq -e --arg tag "$tag" 'index($tag) != null' <<< "$released_tags" > /dev/null; then
             continue
