@@ -30,7 +30,7 @@ jobs:
       - name: Check Go formatting
         uses: mr-chelyshkin/actions/invoke-taskfile@v1
         with:
-          command: ci/fmt
+          command: ci/golang-fmt
           environment: ${{ inputs.environment }}
 
   lint:
@@ -52,7 +52,7 @@ jobs:
       - name: Lint Go
         uses: mr-chelyshkin/actions/invoke-taskfile@v1
         with:
-          command: ci/lint
+          command: ci/golang-lint
           environment: ${{ inputs.environment }}
 
   test:
@@ -65,7 +65,7 @@ jobs:
       - name: Run Go tests
         uses: mr-chelyshkin/actions/invoke-taskfile@v1
         with:
-          command: ci/test
+          command: ci/golang-test
           environment: ${{ inputs.environment }}
 
   vuln:
@@ -78,5 +78,5 @@ jobs:
       - name: Check Go vulnerabilities
         uses: mr-chelyshkin/actions/invoke-taskfile@v1
         with:
-          command: ci/vuln
+          command: ci/golang-vuln
           environment: ${{ inputs.environment }}
