@@ -4,9 +4,8 @@ on:
   workflow_call:
     inputs:
       environment:
-        description: Environment variables for Terraform plan as a JSON object.
+        description: Environment variables of every job as a JSON object.
         type: string
-        required: false
         default: '{}'
       aws-region:
         description: AWS region used when assuming the Terraform role.
@@ -36,16 +35,18 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
+    env: ${{ fromJSON(inputs.environment) }}
     steps:
       - uses: actions/checkout@v6
       - name: Check Terraform formatting
         uses: mr-chelyshkin/actions/invoke-taskfile@v1
-        with: { command: ci/terraform-fmt }
+        with: { command: ci/terraform/fmt }
 
   validate:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
+    env: ${{ fromJSON(inputs.environment) }}
     steps:
       - uses: actions/checkout@v6
       - &terraform-cache
@@ -59,7 +60,7 @@ jobs:
             ${{ inputs.cache-key-prefix }}-${{ runner.os }}-${{ runner.arch }}-
       - name: Validate Terraform
         uses: mr-chelyshkin/actions/invoke-taskfile@v1
-        with: { command: ci/terraform-validate }
+        with: { command: ci/terraform/validate }
 
   plan:
     needs: [fmt, validate]
@@ -83,14 +84,14 @@ jobs:
       - name: Prepare Terraform task
         uses: mr-chelyshkin/actions/invoke-taskfile@v1
         with:
-          command: --dry ci/terraform-plan
+          command: --dry ci/terraform/plan
 
       - name: Run Terraform plan
         shell: bash
         run: |
           set -euo pipefail
 
-          task --yes --offline ci/terraform-plan | tee "$RUNNER_TEMP/terraform-plan.log"
+          task --yes --offline ci/terraform/plan | tee "$RUNNER_TEMP/terraform-plan.log"
 
           {
             printf '## Terraform plan\n\n~~~text\n'

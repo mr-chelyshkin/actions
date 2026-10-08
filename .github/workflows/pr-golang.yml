@@ -4,9 +4,9 @@ on:
   workflow_call:
     inputs:
       environment:
-        description: Task environment as comma-separated KEY=value pairs, passed to invoke-taskfile.
+        description: Environment variables of every job as a JSON object.
         type: string
-        default: ''
+        default: '{}'
       cache-path:
         description: Host cache paths to preserve. Empty disables Go caching.
         type: string
@@ -25,18 +25,19 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
+    env: ${{ fromJSON(inputs.environment) }}
     steps:
       - uses: actions/checkout@v6
       - name: Check Go formatting
         uses: mr-chelyshkin/actions/invoke-taskfile@v1
         with:
-          command: ci/golang-fmt
-          environment: ${{ inputs.environment }}
+          command: ci/golang/fmt
 
   lint:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
+    env: ${{ fromJSON(inputs.environment) }}
     steps:
       - uses: actions/checkout@v6
       - &go-cache
@@ -45,38 +46,36 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ${{ inputs.cache-path }}
-          key: ${{ inputs.cache-key-prefix }}-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-${{ hashFiles(inputs.cache-dependency-path) }}-${{ github.sha }}
+          key: ${{ inputs.cache-key-prefix }}-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-${{ hashFiles(inputs.cache-dependency-path) }}
           restore-keys: |
-            ${{ inputs.cache-key-prefix }}-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-${{ hashFiles(inputs.cache-dependency-path) }}-
             ${{ inputs.cache-key-prefix }}-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-
       - name: Lint Go
         uses: mr-chelyshkin/actions/invoke-taskfile@v1
         with:
-          command: ci/golang-lint
-          environment: ${{ inputs.environment }}
+          command: ci/golang/lint
 
   test:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
+    env: ${{ fromJSON(inputs.environment) }}
     steps:
       - uses: actions/checkout@v6
       - *go-cache
       - name: Run Go tests
         uses: mr-chelyshkin/actions/invoke-taskfile@v1
         with:
-          command: ci/golang-test
-          environment: ${{ inputs.environment }}
+          command: ci/golang/test
 
   vuln:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
+    env: ${{ fromJSON(inputs.environment) }}
     steps:
       - uses: actions/checkout@v6
       - *go-cache
       - name: Check Go vulnerabilities
         uses: mr-chelyshkin/actions/invoke-taskfile@v1
         with:
-          command: ci/golang-vuln
-          environment: ${{ inputs.environment }}
+          command: ci/golang/vuln

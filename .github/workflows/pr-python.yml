@@ -4,46 +4,43 @@ on:
   workflow_call:
     inputs:
       environment:
-        description: Task environment as comma-separated KEY=value pairs, passed to invoke-taskfile.
+        description: Environment variables of every job as a JSON object.
         type: string
-        default: ''
+        default: '{}'
 
 jobs:
   fmt:
-    name: Python format
     runs-on: ubuntu-24.04
     permissions:
       contents: read
+    env: ${{ fromJSON(inputs.environment) }}
     steps:
       - uses: actions/checkout@v6
       - name: Check Python formatting
         uses: mr-chelyshkin/actions/invoke-taskfile@v1
         with:
-          command: ci/python-fmt
-          environment: ${{ inputs.environment }}
+          command: ci/python/fmt
 
   lint:
-    name: Python lint
     runs-on: ubuntu-24.04
     permissions:
       contents: read
+    env: ${{ fromJSON(inputs.environment) }}
     steps:
       - uses: actions/checkout@v6
       - name: Lint Python
         uses: mr-chelyshkin/actions/invoke-taskfile@v1
         with:
-          command: ci/python-lint
-          environment: ${{ inputs.environment }}
+          command: ci/python/lint
 
   typecheck:
-    name: Python typecheck
     runs-on: ubuntu-24.04
     permissions:
       contents: read
+    env: ${{ fromJSON(inputs.environment) }}
     steps:
       - uses: actions/checkout@v6
       - name: Check Python types
         uses: mr-chelyshkin/actions/invoke-taskfile@v1
         with:
-          command: ci/python-typecheck
-          environment: ${{ inputs.environment }}
+          command: ci/python/typecheck

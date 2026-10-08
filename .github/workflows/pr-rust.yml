@@ -4,9 +4,9 @@ on:
   workflow_call:
     inputs:
       environment:
-        description: Task environment as comma-separated KEY=value pairs, passed to invoke-taskfile.
+        description: Environment variables of every job as a JSON object.
         type: string
-        default: ''
+        default: '{}'
       cache-path:
         description: Host cache paths to preserve. Empty disables Rust caching.
         type: string
@@ -25,18 +25,19 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
+    env: ${{ fromJSON(inputs.environment) }}
     steps:
       - uses: actions/checkout@v6
       - name: Check Rust formatting
         uses: mr-chelyshkin/actions/invoke-taskfile@v1
         with:
-          command: ci/rust-fmt
-          environment: ${{ inputs.environment }}
+          command: ci/rust/fmt
 
   clippy:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
+    env: ${{ fromJSON(inputs.environment) }}
     steps:
       - uses: actions/checkout@v6
       - &rust-cache
@@ -51,43 +52,42 @@ jobs:
       - name: Lint Rust
         uses: mr-chelyshkin/actions/invoke-taskfile@v1
         with:
-          command: ci/rust-clippy
-          environment: ${{ inputs.environment }}
+          command: ci/rust/clippy
 
   test:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
+    env: ${{ fromJSON(inputs.environment) }}
     steps:
       - uses: actions/checkout@v6
       - *rust-cache
       - name: Run Rust tests
         uses: mr-chelyshkin/actions/invoke-taskfile@v1
         with:
-          command: ci/rust-test
-          environment: ${{ inputs.environment }}
+          command: ci/rust/test
 
   docs:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
+    env: ${{ fromJSON(inputs.environment) }}
     steps:
       - uses: actions/checkout@v6
       - *rust-cache
       - name: Build Rust documentation
         uses: mr-chelyshkin/actions/invoke-taskfile@v1
         with:
-          command: ci/rust-docs
-          environment: ${{ inputs.environment }}
+          command: ci/rust/docs
 
   audit:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
+    env: ${{ fromJSON(inputs.environment) }}
     steps:
       - uses: actions/checkout@v6
       - name: Audit Rust dependencies
         uses: mr-chelyshkin/actions/invoke-taskfile@v1
         with:
-          command: ci/rust-audit
-          environment: ${{ inputs.environment }}
+          command: ci/rust/audit

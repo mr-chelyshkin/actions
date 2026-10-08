@@ -4,31 +4,31 @@ on:
   workflow_call:
     inputs:
       environment:
-        description: Task environment as comma-separated KEY=value pairs, passed to invoke-taskfile.
+        description: Environment variables of every job as a JSON object.
         type: string
-        default: ''
+        default: '{}'
 
 jobs:
   fmt:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
+    env: ${{ fromJSON(inputs.environment) }}
     steps:
       - uses: actions/checkout@v6
       - name: Check Nix formatting
         uses: mr-chelyshkin/actions/invoke-taskfile@v1
         with:
-          command: ci/nixos-fmt
-          environment: ${{ inputs.environment }}
+          command: ci/nixos/fmt
 
   lint:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
+    env: ${{ fromJSON(inputs.environment) }}
     steps:
       - uses: actions/checkout@v6
       - name: Lint Nix
         uses: mr-chelyshkin/actions/invoke-taskfile@v1
         with:
-          command: ci/nixos-lint
-          environment: ${{ inputs.environment }}
+          command: ci/nixos/lint
