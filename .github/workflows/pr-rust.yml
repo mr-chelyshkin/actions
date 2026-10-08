@@ -1,0 +1,93 @@
+name: Rust CI on Pr
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: Task environment as comma-separated KEY=value pairs, passed to invoke-taskfile.
+        type: string
+        default: ''
+      cache-path:
+        description: Host cache paths to preserve. Empty disables Rust caching.
+        type: string
+        default: ''
+      cache-key-prefix:
+        description: Cache namespace. Change it to invalidate previous caches.
+        type: string
+        default: rust
+      cache-dependency-path:
+        description: File path or glob to hash after checkout for dependency changes.
+        type: string
+        default: '**/Cargo.lock'
+
+jobs:
+  fmt:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check Rust formatting
+        uses: mr-chelyshkin/actions/invoke-taskfile@v1
+        with:
+          command: ci/rust-fmt
+          environment: ${{ inputs.environment }}
+
+  clippy:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - &rust-cache
+        name: Cache Cargo registry and build results
+        if: inputs.cache-path != ''
+        uses: actions/cache@v5
+        with:
+          path: ${{ inputs.cache-path }}
+          key: ${{ inputs.cache-key-prefix }}-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-${{ hashFiles(inputs.cache-dependency-path) }}
+          restore-keys: |
+            ${{ inputs.cache-key-prefix }}-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-
+      - name: Lint Rust
+        uses: mr-chelyshkin/actions/invoke-taskfile@v1
+        with:
+          command: ci/rust-clippy
+          environment: ${{ inputs.environment }}
+
+  test:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - *rust-cache
+      - name: Run Rust tests
+        uses: mr-chelyshkin/actions/invoke-taskfile@v1
+        with:
+          command: ci/rust-test
+          environment: ${{ inputs.environment }}
+
+  docs:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - *rust-cache
+      - name: Build Rust documentation
+        uses: mr-chelyshkin/actions/invoke-taskfile@v1
+        with:
+          command: ci/rust-docs
+          environment: ${{ inputs.environment }}
+
+  audit:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - name: Audit Rust dependencies
+        uses: mr-chelyshkin/actions/invoke-taskfile@v1
+        with:
+          command: ci/rust-audit
+          environment: ${{ inputs.environment }}

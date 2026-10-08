@@ -31,11 +31,12 @@
 - [`pr-golang`](.github/workflows/pr-golang.yml)
 - [`pr-nix`](.github/workflows/pr-nix.yml)
 - [`pr-python`](.github/workflows/pr-python.yml)
+- [`pr-rust`](.github/workflows/pr-rust.yml)
 - [`pr-static-site`](.github/workflows/pr-static-site.yml)
 - [`pr-terraform`](.github/workflows/pr-terraform.yml)
 - [`tag-aws-s3-static-release`](.github/workflows/tag-aws-s3-static-release.yml)
 
-`pr-golang` accepts an optional `environment` input and passes it to each Task invocation.
+`pr-golang`, `pr-python` and `pr-rust` accept an optional `environment` input and pass it to each Task invocation.
 Use comma-separated `KEY=value` pairs, as documented for [`invoke-taskfile`](invoke-taskfile/README.md).
 
 ## Usage
