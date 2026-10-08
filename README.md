@@ -31,12 +31,18 @@
 - [`pr-golang`](.github/workflows/pr-golang.yml)
 - [`pr-nix`](.github/workflows/pr-nix.yml)
 - [`pr-python`](.github/workflows/pr-python.yml)
+- [`pr-rust`](.github/workflows/pr-rust.yml)
 - [`pr-static-site`](.github/workflows/pr-static-site.yml)
 - [`pr-terraform`](.github/workflows/pr-terraform.yml)
 - [`tag-aws-s3-static-release`](.github/workflows/tag-aws-s3-static-release.yml)
 
-`pr-golang` accepts an optional `environment` input and passes it to each Task invocation.
-Use comma-separated `KEY=value` pairs, as documented for [`invoke-taskfile`](invoke-taskfile/README.md).
+Every `pr-*` workflow accepts an optional `environment` input: a JSON object whose entries become environment variables of every job.
+
+```yaml
+with:
+  environment: |
+    {"TF_STATE_KEY": ${{ toJSON(vars.TF_STATE_KEY) }}}
+```
 
 ## Usage
 

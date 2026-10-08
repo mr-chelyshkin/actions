@@ -4,9 +4,8 @@ on:
   workflow_call:
     inputs:
       environment:
-        description: Environment variables for Terraform plan as a JSON object.
+        description: Environment variables of every job as a JSON object.
         type: string
-        required: false
         default: '{}'
       aws-region:
         description: AWS region used when assuming the Terraform role.
@@ -36,22 +35,24 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
+    env: ${{ fromJSON(inputs.environment) }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
       - name: Check Terraform formatting
         uses: mr-chelyshkin/actions/invoke-taskfile@v1
-        with: { command: ci/terraform-fmt }
+        with: { command: ci/terraform/fmt }
 
   validate:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
+    env: ${{ fromJSON(inputs.environment) }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
       - &terraform-cache
         name: Cache Terraform providers
         if: inputs.cache-path != ''
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
           path: ${{ inputs.cache-path }}
           key: ${{ inputs.cache-key-prefix }}-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles(inputs.cache-dependency-path) }}
@@ -59,7 +60,7 @@ jobs:
             ${{ inputs.cache-key-prefix }}-${{ runner.os }}-${{ runner.arch }}-
       - name: Validate Terraform
         uses: mr-chelyshkin/actions/invoke-taskfile@v1
-        with: { command: ci/terraform-validate }
+        with: { command: ci/terraform/validate }
 
   plan:
     needs: [fmt, validate]
@@ -69,12 +70,12 @@ jobs:
       id-token: write
     env: ${{ fromJSON(inputs.environment) }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
       - *terraform-cache
 
       - name: Configure AWS credentials
         if: inputs.terraform-role-arn != ''
-        uses: aws-actions/configure-aws-credentials@v6
+        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
         with:
           aws-region: ${{ inputs.aws-region }}
           role-to-assume: ${{ inputs.terraform-role-arn }}
@@ -83,14 +84,14 @@ jobs:
       - name: Prepare Terraform task
         uses: mr-chelyshkin/actions/invoke-taskfile@v1
         with:
-          command: --dry ci/terraform-plan
+          command: --dry ci/terraform/plan
 
       - name: Run Terraform plan
         shell: bash
         run: |
           set -euo pipefail
 
-          task --yes --offline ci/terraform-plan | tee "$RUNNER_TEMP/terraform-plan.log"
+          task --yes --offline ci/terraform/plan | tee "$RUNNER_TEMP/terraform-plan.log"
 
           {
             printf '## Terraform plan\n\n~~~text\n'
