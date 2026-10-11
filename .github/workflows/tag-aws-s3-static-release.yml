@@ -53,6 +53,10 @@ on:
         description: ACM certificate ARN in us-east-1 for CloudFront.
         type: string
         required: true
+    secrets:
+      terraform-vars:
+        description: Secret Terraform variables, one NAME=value per line, exported to apply as masked TF_VAR_NAME.
+        required: false
 
 jobs:
   deploy:
@@ -91,6 +95,25 @@ jobs:
           aws-region: ${{ inputs.aws-region }}
           role-to-assume: ${{ inputs.terraform-role-arn }}
           role-session-name: static-release-${{ github.run_id }}
+      - name: Export secret Terraform variables
+        shell: bash
+        env:
+          TERRAFORM_VARS: ${{ secrets.terraform-vars }}
+        run: |
+          set -euo pipefail
+
+          while IFS= read -r line; do
+            line=${line%$'\r'}
+            [[ -z "${line//[[:space:]]/}" ]] && continue
+            name=${line%%=*}
+            value=${line#*=}
+            if [[ "$line" != *=* || ! "$name" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
+              echo "::error::Each terraform-vars line must be NAME=value."
+              exit 1
+            fi
+            [[ -n "$value" ]] && echo "::add-mask::$value"
+            printf 'TF_VAR_%s=%s\n' "$name" "$value" >> "$GITHUB_ENV"
+          done <<< "$TERRAFORM_VARS"
       - name: Apply Terraform
         id: apply
         uses: mr-chelyshkin/actions/terraform-apply@v1
