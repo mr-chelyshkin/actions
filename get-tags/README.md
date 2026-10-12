@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 steps:
-  - uses: actions/checkout@v6
+  - uses: actions/checkout@v7
     with:
       fetch-depth: 0
   - uses: mr-chelyshkin/actions/get-tags@<ref>
