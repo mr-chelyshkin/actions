@@ -1,13 +1,14 @@
 name: Invoke Taskfile
-description: Run a command from the consumer's Taskfile.
+description: Run a task from the consumer's Taskfile.
 
 inputs:
-  command:
-    description: Task command and arguments to run.
+  task:
+    description: Task to run.
     required: true
-  environment:
-    description: Environment variables as comma-separated KEY=value pairs.
+  args:
+    description: Arguments for Task, one per line, such as KEY=value or --dry.
     required: false
+    default: ''
   directory:
     description: Working directory where Task runs.
     required: false
@@ -104,24 +105,21 @@ runs:
       shell: bash
       run: task --version
 
-    - name: Export Task environment
-      if: ${{ inputs.environment != '' }}
-      shell: bash
-      env:
-        TASK_ENVIRONMENT: ${{ inputs.environment }}
-      run: |
-        set -euo pipefail
-
-        IFS=',' read -ra TASK_ENVIRONMENT_ENTRIES <<< "$TASK_ENVIRONMENT"
-        for task_environment_entry in "${TASK_ENVIRONMENT_ENTRIES[@]}"; do
-          [[ "$task_environment_entry" =~ ^([^=]+)=(.+)$ ]] && echo "${BASH_REMATCH[1]}=${BASH_REMATCH[2]}" >> "$GITHUB_ENV"
-        done
-
-    - name: Run Task command
+    - name: Run Task
       shell: bash
       working-directory: ${{ inputs.directory }}
       env:
         TASK_X_REMOTE_TASKFILES: "1"
+        TASK_NAME: ${{ inputs.task }}
+        TASK_ARGS: ${{ inputs.args }}
       run: |
         set -euo pipefail
-        task --yes ${{ inputs.command }}
+
+        set --
+        while IFS= read -r arg; do
+          if [[ -n "${arg//[[:space:]]/}" ]]; then
+            set -- "$@" "$arg"
+          fi
+        done <<< "$TASK_ARGS"
+
+        task --yes "$TASK_NAME" "$@"

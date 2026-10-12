@@ -22,7 +22,7 @@ jobs:
           persist-credentials: false
       - uses: ./invoke-taskfile
         with:
-          command: ci/markdown/fmt
+          task: ci/markdown/fmt
 
   actionlint:
     name: Actionlint

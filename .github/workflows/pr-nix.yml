@@ -17,9 +17,9 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Check Nix formatting
-        uses: mr-chelyshkin/actions/invoke-taskfile@v1
+        uses: mr-chelyshkin/actions/invoke-taskfile@v2
         with:
-          command: ci/nixos/fmt
+          task: ci/nixos/fmt
 
   lint:
     runs-on: ubuntu-24.04
@@ -29,6 +29,6 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Lint Nix
-        uses: mr-chelyshkin/actions/invoke-taskfile@v1
+        uses: mr-chelyshkin/actions/invoke-taskfile@v2
         with:
-          command: ci/nixos/lint
+          task: ci/nixos/lint

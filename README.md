@@ -17,7 +17,7 @@
 
 | Action | Purpose |
 | -- | -- |
-| [`invoke-taskfile`](invoke-taskfile/README.md) | Run a Taskfile command with a cached Task binary. |
+| [`invoke-taskfile`](invoke-taskfile/README.md) | Run a Taskfile task with a cached Task binary. |
 | [`check-changelog-label`](check-changelog-label/README.md) | Check that a PR has at least one allowed label. |
 | [`check-job-results`](check-job-results/README.md) | Combine job results into one final check. |
 | [`check-tag-branch`](check-tag-branch/README.md) | Check a tag commit is contained in a branch. |
@@ -52,7 +52,7 @@ Replace `<ref>` with a published tag or commit.
 ```yaml
 - uses: mr-chelyshkin/actions/invoke-taskfile@<ref>
   with:
-    command: <task-command>
+    task: <task>
 ```
 
 Follow the component links for inputs, examples, and behavior.
