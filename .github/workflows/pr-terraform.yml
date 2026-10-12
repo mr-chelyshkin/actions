@@ -43,8 +43,8 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Check Terraform formatting
-        uses: mr-chelyshkin/actions/invoke-taskfile@v1
-        with: { command: ci/terraform/fmt }
+        uses: mr-chelyshkin/actions/invoke-taskfile@v2
+        with: { task: ci/terraform/fmt }
 
   validate:
     runs-on: ubuntu-24.04
@@ -63,8 +63,8 @@ jobs:
           restore-keys: |
             ${{ inputs.cache-key-prefix }}-${{ runner.os }}-${{ runner.arch }}-
       - name: Validate Terraform
-        uses: mr-chelyshkin/actions/invoke-taskfile@v1
-        with: { command: ci/terraform/validate }
+        uses: mr-chelyshkin/actions/invoke-taskfile@v2
+        with: { task: ci/terraform/validate }
 
   plan:
     needs: [fmt, validate]
@@ -106,9 +106,10 @@ jobs:
           done <<< "$TERRAFORM_VARS"
 
       - name: Prepare Terraform task
-        uses: mr-chelyshkin/actions/invoke-taskfile@v1
+        uses: mr-chelyshkin/actions/invoke-taskfile@v2
         with:
-          command: --dry ci/terraform/plan
+          task: ci/terraform/plan
+          args: --dry
 
       - name: Run Terraform plan
         shell: bash

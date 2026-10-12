@@ -17,9 +17,9 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Build static site
-        uses: mr-chelyshkin/actions/invoke-taskfile@v1
+        uses: mr-chelyshkin/actions/invoke-taskfile@v2
         with:
-          command: ci/static/build
+          task: ci/static/build
 
   audit:
     runs-on: ubuntu-24.04
@@ -29,9 +29,9 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Audit dependencies
-        uses: mr-chelyshkin/actions/invoke-taskfile@v1
+        uses: mr-chelyshkin/actions/invoke-taskfile@v2
         with:
-          command: ci/static/audit
+          task: ci/static/audit
 
   test:
     runs-on: ubuntu-24.04
@@ -41,6 +41,6 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Run tests
-        uses: mr-chelyshkin/actions/invoke-taskfile@v1
+        uses: mr-chelyshkin/actions/invoke-taskfile@v2
         with:
-          command: ci/static/test
+          task: ci/static/test

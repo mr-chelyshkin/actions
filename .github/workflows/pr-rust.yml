@@ -29,9 +29,9 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Check Rust formatting
-        uses: mr-chelyshkin/actions/invoke-taskfile@v1
+        uses: mr-chelyshkin/actions/invoke-taskfile@v2
         with:
-          command: ci/rust/fmt
+          task: ci/rust/fmt
 
   clippy:
     runs-on: ubuntu-24.04
@@ -50,9 +50,9 @@ jobs:
           restore-keys: |
             ${{ inputs.cache-key-prefix }}-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-
       - name: Lint Rust
-        uses: mr-chelyshkin/actions/invoke-taskfile@v1
+        uses: mr-chelyshkin/actions/invoke-taskfile@v2
         with:
-          command: ci/rust/clippy
+          task: ci/rust/clippy
 
   test:
     runs-on: ubuntu-24.04
@@ -63,9 +63,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - *rust-cache
       - name: Run Rust tests
-        uses: mr-chelyshkin/actions/invoke-taskfile@v1
+        uses: mr-chelyshkin/actions/invoke-taskfile@v2
         with:
-          command: ci/rust/test
+          task: ci/rust/test
 
   docs:
     runs-on: ubuntu-24.04
@@ -76,9 +76,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - *rust-cache
       - name: Check Rust documentation
-        uses: mr-chelyshkin/actions/invoke-taskfile@v1
+        uses: mr-chelyshkin/actions/invoke-taskfile@v2
         with:
-          command: ci/rust/docs/check
+          task: ci/rust/docs/check
 
   audit:
     runs-on: ubuntu-24.04
@@ -88,6 +88,6 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Audit Rust dependencies
-        uses: mr-chelyshkin/actions/invoke-taskfile@v1
+        uses: mr-chelyshkin/actions/invoke-taskfile@v2
         with:
-          command: ci/rust/audit
+          task: ci/rust/audit
