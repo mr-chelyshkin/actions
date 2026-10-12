@@ -17,12 +17,12 @@
 
 | Action | Purpose |
 | -- | -- |
-| [`invoke-taskfile`](invoke-taskfile/README.md) | Run a Taskfile task with a cached Task binary. |
-| [`check-changelog-label`](check-changelog-label/README.md) | Require an allowed label on the pull request. |
-| [`check-job-results`](check-job-results/README.md) | Combine the results of needed jobs into one check. |
-| [`check-tag-branch`](check-tag-branch/README.md) | Check that a tag commit is in a remote branch. |
-| [`check-tag-format`](check-tag-format/README.md) | Check a tag name against a regular expression. |
-| [`get-tags`](get-tags/README.md) | Select version-sorted tags and their commit SHAs. |
+| [`task-run`](task-run/README.md) | Run a Taskfile task with a cached Task binary. |
+| [`changelog-label-check`](changelog-label-check/README.md) | Require an allowed label on the pull request. |
+| [`job-results-check`](job-results-check/README.md) | Combine the results of needed jobs into one check. |
+| [`tag-branch-check`](tag-branch-check/README.md) | Check that a tag commit is in a remote branch. |
+| [`tag-format-check`](tag-format-check/README.md) | Check a tag name against a regular expression. |
+| [`tag-list`](tag-list/README.md) | Select version-sorted tags and their commit SHAs. |
 | [`terraform-apply`](terraform-apply/README.md) | Apply Terraform with an S3 backend and return its outputs. |
 | [`aws-cloudfront-invalidate`](aws-cloudfront-invalidate/README.md) | Invalidate CloudFront paths and wait for completion. |
 
@@ -50,7 +50,7 @@ with:
 Replace `<ref>` with a published tag or commit.
 
 ```yaml
-- uses: mr-chelyshkin/actions/invoke-taskfile@<ref>
+- uses: mr-chelyshkin/actions/task-run@<ref>
   with:
     task: <task>
 ```

@@ -1,4 +1,4 @@
-name: Invoke Taskfile
+name: Task run
 description: Run a Taskfile task with a cached Task binary.
 
 inputs:
@@ -109,7 +109,6 @@ runs:
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       env:
-        TASK_X_REMOTE_TASKFILES: "1"
         TASK_NAME: ${{ inputs.task }}
         TASK_ARGS: ${{ inputs.args }}
       run: |

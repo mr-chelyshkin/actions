@@ -56,7 +56,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Check Terraform formatting
-        uses: mr-chelyshkin/actions/invoke-taskfile@v2
+        uses: mr-chelyshkin/actions/task-run@v2
         with: { task: ci/terraform/fmt }
 
   validate:
@@ -76,7 +76,7 @@ jobs:
           restore-keys: |
             ${{ inputs.cache-key-prefix }}-${{ runner.os }}-${{ runner.arch }}-
       - name: Validate Terraform
-        uses: mr-chelyshkin/actions/invoke-taskfile@v2
+        uses: mr-chelyshkin/actions/task-run@v2
         with: { task: ci/terraform/validate }
 
   plan:
@@ -150,7 +150,7 @@ jobs:
           fi
 
       - name: Set up Task
-        uses: mr-chelyshkin/actions/invoke-taskfile@v2
+        uses: mr-chelyshkin/actions/task-run@v2
         with:
           task: ci/terraform/plan
           args: --dry

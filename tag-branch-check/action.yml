@@ -1,4 +1,4 @@
-name: Check tag branch
+name: Tag branch check
 description: Check that a tag commit is in a remote branch.
 
 inputs:

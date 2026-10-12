@@ -1,4 +1,4 @@
-name: Check changelog label
+name: Changelog label check
 description: Require an allowed label on the pull request.
 
 inputs:

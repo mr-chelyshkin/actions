@@ -1,4 +1,4 @@
-# Check changelog label
+# Changelog label check
 
 Verify that the current pull request has at least one label. Optionally restrict
 the check to an explicit list of allowed labels.
@@ -12,7 +12,7 @@ jobs:
     permissions:
       pull-requests: read
     steps:
-      - uses: mr-chelyshkin/actions/check-changelog-label@<ref>
+      - uses: mr-chelyshkin/actions/changelog-label-check@<ref>
 ```
 
 ## Input
@@ -24,7 +24,7 @@ jobs:
 To restrict the accepted labels:
 
 ```yaml
-- uses: mr-chelyshkin/actions/check-changelog-label@<ref>
+- uses: mr-chelyshkin/actions/changelog-label-check@<ref>
   with:
     allowed-labels: |
       feature

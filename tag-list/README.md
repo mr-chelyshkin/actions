@@ -1,4 +1,4 @@
-# Get tags
+# Tag list
 
 Filter repository tags with a regular expression, select them using Git version
 order, and return their commit SHAs.
@@ -14,7 +14,7 @@ steps:
   - uses: actions/checkout@v7
     with:
       fetch-depth: 0
-  - uses: mr-chelyshkin/actions/get-tags@<ref>
+  - uses: mr-chelyshkin/actions/tag-list@<ref>
     id: tags
     with:
       require-release: 'true'

@@ -1,4 +1,4 @@
-name: Get tags
+name: Tag list
 description: Select version-sorted tags and their commit SHAs.
 
 inputs:
