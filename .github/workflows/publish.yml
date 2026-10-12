@@ -1,36 +1,37 @@
-name: Release on tag
+name: Publish flow
 
 on:
   push:
-    tags:
-      - "v*"
+    tags: ['v*']
 
 concurrency:
-  group: tag-release-${{ github.ref_name }}
+  group: publish
   cancel-in-progress: false
 
 permissions:
   contents: read
 
 jobs:
-  verify-tag:
-    name: Verify tag is on main
+  verify:
+    name: Verify ${{ github.ref_name }}
     runs-on: ubuntu-24.04
-    permissions:
-      contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-
-      - name: Verify tag is on main
+          persist-credentials: false
+      - name: Check tag format
+        uses: ./check-tag-format
+        with:
+          pattern: '^v[1-9][0-9]*$'
+      - name: Check that the tag is on main
         uses: ./check-tag-branch
         with:
           branch: main
 
-  release:
-    name: release
-    needs: verify-tag
+  publish:
+    name: Publish ${{ github.ref_name }}
+    needs: verify
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -38,8 +39,8 @@ jobs:
       - name: Create GitHub release
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
-          draft: false
-          prerelease: false
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
+          draft: false
+          prerelease: false
           generate_release_notes: true
