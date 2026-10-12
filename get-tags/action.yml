@@ -79,7 +79,7 @@ runs:
           exit 1
         fi
 
-        tag_names=$(git tag --list --no-column --sort="$sort_key")
+        tag_names=$(git -c versionsort.suffix=- tag --list --no-column --sort="$sort_key")
         released_tags='[]'
         if [[ "$REQUIRE_RELEASE" == true ]]; then
           released_tags=$(gh api --paginate --slurp "repos/$GH_REPO/releases?per_page=100" |
