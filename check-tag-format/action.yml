@@ -1,5 +1,5 @@
 name: Check tag format
-description: Check a tag name against a configurable regular expression.
+description: Check a tag name against a regular expression.
 
 inputs:
   tag:
@@ -7,14 +7,14 @@ inputs:
     required: false
     default: ${{ github.ref_name }}
   pattern:
-    description: Bash extended regular expression matched against the tag.
+    description: Bash extended regular expression the tag must match. Defaults to SemVer with a v prefix.
     required: false
     default: '^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-(0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)(\.(0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$'
 
 runs:
   using: composite
   steps:
-    - name: Verify tag format
+    - name: Check tag format
       shell: bash
       env:
         TAG_NAME: ${{ inputs.tag }}

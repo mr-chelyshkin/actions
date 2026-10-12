@@ -1,17 +1,17 @@
 name: Get tags
-description: Select repository tags with Git version sorting and return their commit SHAs.
+description: Select version-sorted tags and their commit SHAs.
 
 inputs:
   repository:
-    description: Repository containing the checked-out tags.
+    description: Repository of the checkout, used to look up releases.
     required: false
     default: ${{ github.repository }}
   require-release:
-    description: Only include tags with a published GitHub Release.
+    description: Only include tags with a published release.
     required: false
     default: 'false'
   pattern:
-    description: Bash extended regular expression matched against the tag name.
+    description: Bash extended regular expression the tag must match.
     required: false
     default: '.*'
   sort:
@@ -19,17 +19,17 @@ inputs:
     required: false
     default: desc
   ignore-build-metadata:
-    description: Ignore everything after '+' when grouping tags.
+    description: Return one tag per version, ignoring build metadata after '+'.
     required: false
     default: 'false'
   count:
-    description: Maximum number of matching tags to return. Must be a positive integer.
+    description: Maximum number of tags to return.
     required: false
     default: '1'
 
 outputs:
   tags:
-    description: JSON array of objects with tag and commit_sha fields, in the requested order.
+    description: JSON array of {tag, commit_sha} objects in the requested order.
     value: ${{ steps.tags.outputs.tags }}
 
 runs:

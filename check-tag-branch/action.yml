@@ -1,5 +1,5 @@
 name: Check tag branch
-description: Check that a tag commit is contained in a remote branch.
+description: Check that a tag commit is in a remote branch.
 
 inputs:
   tag:
@@ -7,14 +7,14 @@ inputs:
     required: false
     default: ${{ github.ref_name }}
   branch:
-    description: Branch to check.
+    description: Branch that must contain the tag commit.
     required: false
     default: main
 
 runs:
   using: composite
   steps:
-    - name: Verify tag commit
+    - name: Check tag commit
       shell: bash
       env:
         DEFAULT_BRANCH: ${{ inputs.branch }}

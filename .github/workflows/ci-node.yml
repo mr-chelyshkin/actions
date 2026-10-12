@@ -1,0 +1,68 @@
+name: Node.js CI
+
+on:
+  workflow_call:
+    inputs:
+      env-vars:
+        description: Environment variables of every job as a JSON object.
+        type: string
+        default: '{}'
+      cache-path:
+        description: Paths cached between runs; must match NODE_CACHE_DIR. Empty disables caching.
+        type: string
+        default: .cache/node
+      cache-key-prefix:
+        description: Cache key prefix. Change it to reset the cache.
+        type: string
+        default: node
+      cache-dependency-path:
+        description: Lock file path or glob hashed into the cache key.
+        type: string
+        default: '**/package-lock.json'
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    env: ${{ fromJSON(inputs.env-vars) }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - &node-cache
+        name: Cache npm packages
+        if: inputs.cache-path != ''
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ inputs.cache-path }}
+          key: ${{ inputs.cache-key-prefix }}-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-${{ hashFiles(inputs.cache-dependency-path) }}
+          restore-keys: |
+            ${{ inputs.cache-key-prefix }}-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-
+      - name: Build Node.js project
+        uses: mr-chelyshkin/actions/invoke-taskfile@v2
+        with:
+          task: ci/node/build
+
+  audit:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    env: ${{ fromJSON(inputs.env-vars) }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Audit npm dependencies
+        uses: mr-chelyshkin/actions/invoke-taskfile@v2
+        with:
+          task: ci/node/audit
+
+  test:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    env: ${{ fromJSON(inputs.env-vars) }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - *node-cache
+      - name: Run Node.js tests
+        uses: mr-chelyshkin/actions/invoke-taskfile@v2
+        with:
+          task: ci/node/test

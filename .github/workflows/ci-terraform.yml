@@ -1,50 +1,50 @@
-name: Terraform CI on Pr
+name: Terraform CI
 
 on:
   workflow_call:
     inputs:
-      environment:
+      env-vars:
         description: Environment variables of every job as a JSON object.
         type: string
         default: '{}'
       aws-region:
-        description: AWS region used when assuming the Terraform role.
+        description: AWS region for aws-role-arn.
         type: string
         required: false
         default: ''
-      terraform-role-arn:
-        description: AWS role to assume through GitHub OIDC before Terraform plan.
+      aws-role-arn:
+        description: AWS role to assume via OIDC for plan. Empty skips AWS login.
         type: string
         required: false
         default: ''
       gcp-workload-identity-provider:
-        description: GCP Workload Identity provider for GitHub OIDC before Terraform plan.
+        description: GCP Workload Identity provider for plan. Empty skips GCP login.
         type: string
         required: false
         default: ''
       gcp-service-account:
-        description: GCP service account to impersonate through the Workload Identity provider.
+        description: GCP service account to impersonate.
         type: string
         required: false
         default: ''
       cache-path:
-        description: Host provider cache paths to preserve. Empty disables provider caching.
+        description: Paths cached between runs; must match TERRAFORM_CACHE_DIR. Empty disables caching.
         type: string
-        default: ''
+        default: .cache/terraform
       cache-key-prefix:
-        description: Cache namespace. Change it to invalidate previous caches.
+        description: Cache key prefix. Change it to reset the cache.
         type: string
         default: terraform
       cache-dependency-path:
-        description: Lock file path or glob to hash after checkout for provider changes.
+        description: Lock file path or glob hashed into the cache key.
         type: string
         default: '**/.terraform.lock.hcl'
     secrets:
       terraform-vars:
-        description: Secret Terraform variables, one NAME=value per line.
+        description: Terraform variables as NAME=value lines, passed as TF_VAR_NAME.
         required: false
       credentials:
-        description: Secret provider credentials, one NAME=value per line, forwarded into the container.
+        description: Provider credentials as NAME=value lines, forwarded into the container.
         required: false
 
 jobs:
@@ -52,7 +52,7 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
-    env: ${{ fromJSON(inputs.environment) }}
+    env: ${{ fromJSON(inputs.env-vars) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Check Terraform formatting
@@ -63,7 +63,7 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
-    env: ${{ fromJSON(inputs.environment) }}
+    env: ${{ fromJSON(inputs.env-vars) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - &terraform-cache
@@ -86,17 +86,17 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    env: ${{ fromJSON(inputs.environment) }}
+    env: ${{ fromJSON(inputs.env-vars) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - *terraform-cache
 
       - name: Configure AWS credentials
-        if: inputs.terraform-role-arn != ''
+        if: inputs.aws-role-arn != ''
         uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
         with:
           aws-region: ${{ inputs.aws-region }}
-          role-to-assume: ${{ inputs.terraform-role-arn }}
+          role-to-assume: ${{ inputs.aws-role-arn }}
           role-session-name: terraform-plan-${{ github.run_id }}
 
       - name: Configure GCP credentials
@@ -116,7 +116,7 @@ jobs:
           CREDENTIALS: ${{ secrets.credentials }}
           GCP_ACCESS_TOKEN: ${{ steps.gcp.outputs.access_token }}
           OIDC_CREDENTIALS: >-
-            ${{ inputs.terraform-role-arn != '' && 'AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN AWS_REGION AWS_DEFAULT_REGION' || '' }}
+            ${{ inputs.aws-role-arn != '' && 'AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN AWS_REGION AWS_DEFAULT_REGION' || '' }}
             ${{ inputs.gcp-workload-identity-provider != '' && 'GOOGLE_OAUTH_ACCESS_TOKEN GOOGLE_CLOUD_PROJECT' || '' }}
         run: |
           set -euo pipefail
@@ -149,13 +149,13 @@ jobs:
             printf 'CONTAINER_ENVS=%s\n' "${CONTAINER_ENVS:+$CONTAINER_ENVS }${names[*]}" >> "$GITHUB_ENV"
           fi
 
-      - name: Prepare Terraform task
+      - name: Set up Task
         uses: mr-chelyshkin/actions/invoke-taskfile@v2
         with:
           task: ci/terraform/plan
           args: --dry
 
-      - name: Run Terraform plan
+      - name: Plan Terraform
         shell: bash
         run: |
           set -euo pipefail
