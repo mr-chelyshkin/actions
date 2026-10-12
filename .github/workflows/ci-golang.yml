@@ -1,47 +1,47 @@
-name: Rust CI on Pr
+name: Go CI
 
 on:
   workflow_call:
     inputs:
-      environment:
+      env-vars:
         description: Environment variables of every job as a JSON object.
         type: string
         default: '{}'
       cache-path:
-        description: Host cache paths to preserve. Empty disables Rust caching.
+        description: Paths cached between runs; must match GO_CACHE_DIR. Empty disables caching.
         type: string
-        default: ''
+        default: .cache/go
       cache-key-prefix:
-        description: Cache namespace. Change it to invalidate previous caches.
+        description: Cache key prefix. Change it to reset the cache.
         type: string
-        default: rust
+        default: go
       cache-dependency-path:
-        description: File path or glob to hash after checkout for dependency changes.
+        description: Lock file path or glob hashed into the cache key.
         type: string
-        default: '**/Cargo.lock'
+        default: '**/go.sum'
 
 jobs:
   fmt:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
-    env: ${{ fromJSON(inputs.environment) }}
+    env: ${{ fromJSON(inputs.env-vars) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Check Rust formatting
+      - name: Check Go formatting
         uses: mr-chelyshkin/actions/invoke-taskfile@v2
         with:
-          task: ci/rust/fmt
+          task: ci/golang/fmt
 
-  clippy:
+  lint:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
-    env: ${{ fromJSON(inputs.environment) }}
+    env: ${{ fromJSON(inputs.env-vars) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - &rust-cache
-        name: Cache Cargo registry and build results
+      - &go-cache
+        name: Cache Go build
         if: inputs.cache-path != ''
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
@@ -50,45 +50,33 @@ jobs:
           restore-keys: |
             ${{ inputs.cache-key-prefix }}-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-${{ hashFiles(inputs.cache-dependency-path) }}-
             ${{ inputs.cache-key-prefix }}-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-
-      - name: Lint Rust
+      - name: Lint Go
         uses: mr-chelyshkin/actions/invoke-taskfile@v2
         with:
-          task: ci/rust/clippy
+          task: ci/golang/lint
 
   test:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
-    env: ${{ fromJSON(inputs.environment) }}
+    env: ${{ fromJSON(inputs.env-vars) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - *rust-cache
-      - name: Run Rust tests
+      - *go-cache
+      - name: Run Go tests
         uses: mr-chelyshkin/actions/invoke-taskfile@v2
         with:
-          task: ci/rust/test
-
-  docs:
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-    env: ${{ fromJSON(inputs.environment) }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - *rust-cache
-      - name: Check Rust documentation
-        uses: mr-chelyshkin/actions/invoke-taskfile@v2
-        with:
-          task: ci/rust/docs/check
+          task: ci/golang/test
 
   audit:
     runs-on: ubuntu-24.04
     permissions:
       contents: read
-    env: ${{ fromJSON(inputs.environment) }}
+    env: ${{ fromJSON(inputs.env-vars) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Audit Rust dependencies
+      - *go-cache
+      - name: Audit Go dependencies
         uses: mr-chelyshkin/actions/invoke-taskfile@v2
         with:
-          task: ci/rust/audit
+          task: ci/golang/audit

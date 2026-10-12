@@ -1,16 +1,16 @@
 name: Check job results
-description: Check dependency job results.
+description: Combine the results of needed jobs into one check.
 
 inputs:
   results:
-    description: Pass `toJSON(needs)` from the calling aggregator job.
+    description: Pass `toJSON(needs)` from the calling job.
     required: true
   ignored:
-    description: Space-separated job IDs where any result is tolerated.
+    description: Space-separated job IDs whose results are ignored.
     required: false
     default: ""
   skipped:
-    description: Space-separated job IDs where "skipped" is tolerated (but failure is not).
+    description: Space-separated job IDs allowed to be skipped.
     required: false
     default: ""
 

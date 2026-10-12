@@ -1,20 +1,20 @@
 name: Invoke Taskfile
-description: Run a task from the consumer's Taskfile.
+description: Run a Taskfile task with a cached Task binary.
 
 inputs:
   task:
     description: Task to run.
     required: true
   args:
-    description: Arguments for Task, one per line, such as KEY=value or --dry.
+    description: Task arguments, one per line, such as KEY=value or --dry.
     required: false
     default: ''
-  directory:
-    description: Working directory where Task runs.
+  working-directory:
+    description: Directory to run Task in.
     required: false
     default: '.'
-  version:
-    description: Task release version without the v prefix.
+  task-version:
+    description: Task version without the v prefix.
     required: false
     default: '3.53.1'
 
@@ -25,15 +25,15 @@ runs:
       id: cache
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
-        path: ${{ runner.temp }}/task-bin/${{ inputs.version }}
-        key: task-${{ inputs.version }}-${{ runner.os }}-${{ runner.arch }}
+        path: ${{ runner.temp }}/task-bin/${{ inputs.task-version }}
+        key: task-${{ inputs.task-version }}-${{ runner.os }}-${{ runner.arch }}
 
     - name: Install Task
       if: steps.cache.outputs.cache-hit != 'true'
       shell: bash
       env:
-        TASK_VERSION: ${{ inputs.version }}
-        TASK_INSTALL_DIR: ${{ runner.temp }}/task-bin/${{ inputs.version }}
+        TASK_VERSION: ${{ inputs.task-version }}
+        TASK_INSTALL_DIR: ${{ runner.temp }}/task-bin/${{ inputs.task-version }}
       run: |
         set -euo pipefail
 
@@ -56,7 +56,7 @@ runs:
         esac
 
         # Checksums of the default version, from its task_checksums.txt. Update them with the default
-        # of the version input. Another version is checked against the checksums of its release.
+        # of the task-version input. Another version is checked against the checksums of its release.
         case "${TASK_VERSION}/${task_os}_${task_arch}" in
           3.53.1/linux_amd64)  task_sha256=a54a408f6861ff921f6e87774180db31bacd8c1e7c944ca696db9fea49a82fc7 ;;
           3.53.1/linux_arm64)  task_sha256=e3ad19101493a0112e1f22ae8ccc54bf03e533b1076a0ca1e6c782a09ad2e588 ;;
@@ -98,7 +98,7 @@ runs:
     - name: Add Task to PATH
       shell: bash
       env:
-        TASK_INSTALL_DIR: ${{ runner.temp }}/task-bin/${{ inputs.version }}
+        TASK_INSTALL_DIR: ${{ runner.temp }}/task-bin/${{ inputs.task-version }}
       run: printf '%s\n' "$TASK_INSTALL_DIR" >> "$GITHUB_PATH"
 
     - name: Print Task version
@@ -107,7 +107,7 @@ runs:
 
     - name: Run Task
       shell: bash
-      working-directory: ${{ inputs.directory }}
+      working-directory: ${{ inputs.working-directory }}
       env:
         TASK_X_REMOTE_TASKFILES: "1"
         TASK_NAME: ${{ inputs.task }}

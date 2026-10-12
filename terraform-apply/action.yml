@@ -1,33 +1,33 @@
 name: Terraform apply
-description: Initialize and apply Terraform.
+description: Apply Terraform with an S3 backend and return its outputs.
 
 inputs:
-  version:
-    description: Terraform CLI version. Empty reads .terraform-version in workdir.
+  terraform-version:
+    description: Terraform version. Empty reads .terraform-version in working-directory.
     required: false
     default: ''
-  workdir:
-    description: Terraform working directory relative to the workspace.
+  working-directory:
+    description: Terraform directory relative to the workspace.
     required: false
     default: .
-  backend-bucket:
-    description: S3 bucket containing Terraform state.
+  terraform-state-bucket:
+    description: S3 bucket for Terraform state.
     required: true
-  backend-key:
-    description: Terraform state object key.
+  terraform-state-key:
+    description: S3 object key for Terraform state.
     required: true
-  backend-region:
-    description: AWS region containing the Terraform state bucket.
+  terraform-state-region:
+    description: AWS region of the state bucket.
     required: true
   write-summary:
-    description: Write Terraform init and apply output to the GitHub step summary.
+    description: Write init and apply output to the step summary.
     required: false
     default: "true"
 
 outputs:
-  outputs:
+  terraform-outputs:
     description: Terraform outputs as JSON.
-    value: ${{ steps.apply.outputs.outputs }}
+    value: ${{ steps.apply.outputs.terraform-outputs }}
 
 runs:
   using: composite
@@ -35,9 +35,9 @@ runs:
     - name: Resolve Terraform version
       id: version
       shell: bash
-      working-directory: ${{ github.workspace }}/${{ inputs.workdir }}
+      working-directory: ${{ github.workspace }}/${{ inputs.working-directory }}
       env:
-        TERRAFORM_VERSION: ${{ inputs.version }}
+        TERRAFORM_VERSION: ${{ inputs.terraform-version }}
       run: |
         set -euo pipefail
 
@@ -46,7 +46,7 @@ runs:
           version=$(sed -nE '1s/^[[:space:]]*v?([^[:space:]]+).*/\1/p' .terraform-version)
         fi
         if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-          echo "::error::Set the version input or pin an exact version (X.Y.Z) in .terraform-version."
+          echo '::error::Input "terraform-version" must be X.Y.Z, or empty with X.Y.Z pinned in .terraform-version.'
           exit 1
         fi
         printf 'version=%s\n' "$version" >> "$GITHUB_OUTPUT"
@@ -60,11 +60,11 @@ runs:
     - name: Apply Terraform
       id: apply
       shell: bash
-      working-directory: ${{ github.workspace }}/${{ inputs.workdir }}
+      working-directory: ${{ github.workspace }}/${{ inputs.working-directory }}
       env:
-        TF_BACKEND_REGION: ${{ inputs.backend-region }}
-        TF_BACKEND_BUCKET: ${{ inputs.backend-bucket }}
-        TF_BACKEND_KEY: ${{ inputs.backend-key }}
+        TF_BACKEND_REGION: ${{ inputs.terraform-state-region }}
+        TF_BACKEND_BUCKET: ${{ inputs.terraform-state-bucket }}
+        TF_BACKEND_KEY: ${{ inputs.terraform-state-key }}
         WRITE_SUMMARY: ${{ inputs.write-summary }}
         CHECKPOINT_DISABLE: "1"
         TF_IN_AUTOMATION: "1"
@@ -74,8 +74,8 @@ runs:
         case "$WRITE_SUMMARY" in
           true|false) ;;
           *)
-            echo "::error::write-summary must be 'true' or 'false'."
-            exit 2
+            echo '::error::Input "write-summary" must be true or false.'
+            exit 1
             ;;
         esac
 
@@ -123,7 +123,7 @@ runs:
           delimiter="${delimiter}_"
         done
         {
-          printf 'outputs<<%s\n' "$delimiter"
+          printf 'terraform-outputs<<%s\n' "$delimiter"
           printf '%s\n' "$outputs"
           printf '%s\n' "$delimiter"
         } >> "$GITHUB_OUTPUT"

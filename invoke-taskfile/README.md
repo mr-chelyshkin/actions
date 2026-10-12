@@ -9,14 +9,14 @@ Taskfile.
 | -- | -- |
 | `task` | Required task to run, for example `ci/build`. |
 | `args` | Arguments for Task, one per line: variables `KEY=value` and flags such as `--dry`. Optional. |
-| `directory` | Working directory where Task runs. Default: `.`. |
-| `version` | Task release version without the `v` prefix. Default: `3.53.1`. |
+| `working-directory` | Working directory where Task runs. Default: `.`. |
+| `task-version` | Task release version without the `v` prefix. Default: `3.53.1`. |
 
 Environment variables for the task go in the step's `env:`.
 
-The SHA-256 checksums of the default `version` are pinned in the action. Another
-version is checked against `task_checksums.txt` of its release, which detects a
-damaged download but not a replaced release.
+The SHA-256 checksums of the default `task-version` are pinned in the action.
+Another version is checked against `task_checksums.txt` of its release, which
+detects a damaged download but not a replaced release.
 
 ## Example
 
@@ -38,8 +38,8 @@ jobs:
           task: ci/build
           args: |
             TARGET_ARCH=amd64
-          version: '3.53.1'
-          directory: '.'
+          task-version: '3.53.1'
+          working-directory: '.'
 ```
 
 The action runs `task --yes ci/build TARGET_ARCH=amd64` in the selected

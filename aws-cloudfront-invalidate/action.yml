@@ -1,12 +1,12 @@
 name: AWS CloudFront invalidate
-description: Invalidate CloudFront cache.
+description: Invalidate CloudFront paths and wait for completion.
 
 inputs:
   distribution-id:
-    description: CloudFront distribution to invalidate.
+    description: CloudFront distribution ID.
     required: true
   paths:
-    description: Space-separated CloudFront paths to invalidate.
+    description: Space-separated paths to invalidate.
     required: false
     default: "/*"
   wait:
@@ -29,8 +29,8 @@ runs:
         case "$WAIT" in
           true|false) ;;
           *)
-            echo "::error::wait must be 'true' or 'false'."
-            exit 2
+            echo '::error::Input "wait" must be true or false.'
+            exit 1
             ;;
         esac
 

@@ -14,35 +14,35 @@ steps:
       role-to-assume: <role-arn>
   - uses: mr-chelyshkin/actions/terraform-apply@<ref>
     with:
-      workdir: tf
-      backend-bucket: <state-bucket>
-      backend-key: <state-key>
-      backend-region: eu-central-1
+      working-directory: tf
+      terraform-state-bucket: <state-bucket>
+      terraform-state-key: <state-key>
+      terraform-state-region: eu-central-1
 ```
 
 ## Inputs
 
 | Input | Value |
 | -- | -- |
-| `version` | Terraform CLI version. Default: `.terraform-version` in `workdir`. |
-| `workdir` | Terraform directory relative to the workspace. Default: `.`. |
-| `backend-bucket` | Required S3 state bucket. |
-| `backend-key` | Required state object key. |
-| `backend-region` | Required AWS region containing the state bucket. |
+| `terraform-version` | Terraform CLI version. Default: `.terraform-version` in `working-directory`. |
+| `working-directory` | Terraform directory relative to the workspace. Default: `.`. |
+| `terraform-state-bucket` | Required S3 state bucket. |
+| `terraform-state-key` | Required state object key. |
+| `terraform-state-region` | Required AWS region containing the state bucket. |
 | `write-summary` | Write `init` and `apply` output to `$GITHUB_STEP_SUMMARY`. Default: `true`. |
 
 ## Outputs
 
 | Output | Value |
 | -- | -- |
-| `outputs` | Terraform outputs as JSON from `terraform output -json`, without sensitive outputs. |
+| `terraform-outputs` | Terraform outputs as JSON from `terraform output -json`, without sensitive outputs. |
 
 AWS credentials, region settings and project-specific `TF_VAR_*` values are
 inherited from the calling job's environment.
 
 The action runs `terraform init`, `terraform apply` and
-`terraform output -json`. The resulting JSON is returned in the `outputs` action
-output. When `write-summary` is `true`, `init` and `apply` output is also
-written to the step summary.
+`terraform output -json`. The resulting JSON is returned in the
+`terraform-outputs` action output. When `write-summary` is `true`, `init` and
+`apply` output is also written to the step summary.
 
 Implementation: [action.yml](action.yml).

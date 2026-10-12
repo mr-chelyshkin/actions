@@ -18,30 +18,30 @@
 | Action | Purpose |
 | -- | -- |
 | [`invoke-taskfile`](invoke-taskfile/README.md) | Run a Taskfile task with a cached Task binary. |
-| [`check-changelog-label`](check-changelog-label/README.md) | Check that a PR has at least one allowed label. |
-| [`check-job-results`](check-job-results/README.md) | Combine job results into one final check. |
-| [`check-tag-branch`](check-tag-branch/README.md) | Check a tag commit is contained in a branch. |
-| [`check-tag-format`](check-tag-format/README.md) | Check a tag name against a configurable pattern. |
+| [`check-changelog-label`](check-changelog-label/README.md) | Require an allowed label on the pull request. |
+| [`check-job-results`](check-job-results/README.md) | Combine the results of needed jobs into one check. |
+| [`check-tag-branch`](check-tag-branch/README.md) | Check that a tag commit is in a remote branch. |
+| [`check-tag-format`](check-tag-format/README.md) | Check a tag name against a regular expression. |
 | [`get-tags`](get-tags/README.md) | Select version-sorted tags and their commit SHAs. |
-| [`terraform-apply`](terraform-apply/README.md) | Initialize and apply Terraform. |
-| [`aws-cloudfront-invalidate`](aws-cloudfront-invalidate/README.md) | Invalidate CloudFront and wait for completion. |
+| [`terraform-apply`](terraform-apply/README.md) | Apply Terraform with an S3 backend and return its outputs. |
+| [`aws-cloudfront-invalidate`](aws-cloudfront-invalidate/README.md) | Invalidate CloudFront paths and wait for completion. |
 
 ## Workflows
 
-- [`pr-golang`](.github/workflows/pr-golang.yml)
-- [`pr-nix`](.github/workflows/pr-nix.yml)
-- [`pr-python`](.github/workflows/pr-python.yml)
-- [`pr-rust`](.github/workflows/pr-rust.yml)
-- [`pr-static-site`](.github/workflows/pr-static-site.yml)
-- [`pr-terraform`](.github/workflows/pr-terraform.yml)
-- [`tag-aws-s3-static-release`](.github/workflows/tag-aws-s3-static-release.yml)
+- [`ci-golang`](.github/workflows/ci-golang.yml)
+- [`ci-nix`](.github/workflows/ci-nix.yml)
+- [`ci-node`](.github/workflows/ci-node.yml)
+- [`ci-python`](.github/workflows/ci-python.yml)
+- [`ci-rust`](.github/workflows/ci-rust.yml)
+- [`ci-terraform`](.github/workflows/ci-terraform.yml)
+- [`cd-aws-s3-static`](.github/workflows/cd-aws-s3-static.yml)
 
-Every `pr-*` workflow accepts an optional `environment` input: a JSON object
-whose entries become environment variables of every job.
+Every `ci-*` workflow accepts an optional `env-vars` input: a JSON object whose
+entries become environment variables of every job.
 
 ```yaml
 with:
-  environment: |
+  env-vars: |
     {"TF_STATE_KEY": ${{ toJSON(vars.TF_STATE_KEY) }}}
 ```
 

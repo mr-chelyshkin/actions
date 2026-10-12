@@ -1,16 +1,16 @@
 name: Check changelog label
-description: Verify that a pull request has at least one allowed label.
+description: Require an allowed label on the pull request.
 
 inputs:
   allowed-labels:
-    description: Newline-separated labels accepted by the check. Empty allows any label.
+    description: Allowed labels, one per line. Empty allows any label.
     required: false
     default: ""
 
 runs:
   using: composite
   steps:
-    - name: Verify PR has a changelog label
+    - name: Check PR labels
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
