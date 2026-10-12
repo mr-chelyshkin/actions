@@ -2,7 +2,8 @@
 
 Check that the commit targeted by a tag is contained in a remote branch.
 
-The calling job must check out the repository with complete history before using this action:
+The calling job must check out the repository with complete history before using
+this action:
 
 ```yaml
 steps:
@@ -16,11 +17,12 @@ steps:
 
 ## Inputs
 
-| Input    | Value                                     |
-|----------|-------------------------------------------|
-| `tag`    | Tag to check. Default: `github.ref_name`. |
-| `branch` | Branch to check. Default: `main`.         |
+| Input | Value |
+| -- | -- |
+| `tag` | Tag to check. Default: `github.ref_name`. |
+| `branch` | Branch to check. Default: `main`. |
 
-The action fails when the tag commit is not an ancestor of the selected remote branch.
+The action fails when the tag commit is not an ancestor of the selected remote
+branch.
 
 Implementation: [action.yml](action.yml).

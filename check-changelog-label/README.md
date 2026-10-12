@@ -1,7 +1,7 @@
 # Check changelog label
 
-Verify that the current pull request has at least one label.
-Optionally restrict the check to an explicit list of allowed labels.
+Verify that the current pull request has at least one label. Optionally restrict
+the check to an explicit list of allowed labels.
 
 The action must run in a pull request context:
 
@@ -17,8 +17,8 @@ jobs:
 
 ## Input
 
-| Input            | Value                                                                          |
-|------------------|--------------------------------------------------------------------------------|
+| Input | Value |
+| -- | -- |
 | `allowed-labels` | Optional newline-separated allowed labels. Empty means every label is allowed. |
 
 To restrict the accepted labels:
@@ -32,6 +32,7 @@ To restrict the accepted labels:
       docs
 ```
 
-The action fails when the pull request has no labels, or when none of its labels match a nonempty `allowed-labels` list.
+The action fails when the pull request has no labels, or when none of its labels
+match a nonempty `allowed-labels` list.
 
 Implementation: [action.yml](action.yml).
