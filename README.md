@@ -15,16 +15,16 @@
 
 ## Actions
 
-| Action                                                             | Purpose                                           |
-|--------------------------------------------------------------------|---------------------------------------------------|
-| [`invoke-taskfile`](invoke-taskfile/README.md)                     | Run a Taskfile command with a cached Task binary. |
-| [`check-changelog-label`](check-changelog-label/README.md)         | Check that a PR has at least one allowed label.   |
-| [`check-job-results`](check-job-results/README.md)                 | Combine job results into one final check.         |
-| [`check-tag-branch`](check-tag-branch/README.md)                   | Check a tag commit is contained in a branch.      |
-| [`check-tag-format`](check-tag-format/README.md)                   | Check a tag name against a configurable pattern.  |
-| [`get-tags`](get-tags/README.md)                                   | Select version-sorted tags and their commit SHAs. |
-| [`terraform-apply`](terraform-apply/README.md)                     | Initialize and apply Terraform.                   |
-| [`aws-cloudfront-invalidate`](aws-cloudfront-invalidate/README.md) | Invalidate CloudFront and wait for completion.    |
+| Action | Purpose |
+| -- | -- |
+| [`invoke-taskfile`](invoke-taskfile/README.md) | Run a Taskfile command with a cached Task binary. |
+| [`check-changelog-label`](check-changelog-label/README.md) | Check that a PR has at least one allowed label. |
+| [`check-job-results`](check-job-results/README.md) | Combine job results into one final check. |
+| [`check-tag-branch`](check-tag-branch/README.md) | Check a tag commit is contained in a branch. |
+| [`check-tag-format`](check-tag-format/README.md) | Check a tag name against a configurable pattern. |
+| [`get-tags`](get-tags/README.md) | Select version-sorted tags and their commit SHAs. |
+| [`terraform-apply`](terraform-apply/README.md) | Initialize and apply Terraform. |
+| [`aws-cloudfront-invalidate`](aws-cloudfront-invalidate/README.md) | Invalidate CloudFront and wait for completion. |
 
 ## Workflows
 
@@ -36,7 +36,8 @@
 - [`pr-terraform`](.github/workflows/pr-terraform.yml)
 - [`tag-aws-s3-static-release`](.github/workflows/tag-aws-s3-static-release.yml)
 
-Every `pr-*` workflow accepts an optional `environment` input: a JSON object whose entries become environment variables of every job.
+Every `pr-*` workflow accepts an optional `environment` input: a JSON object
+whose entries become environment variables of every job.
 
 ```yaml
 with:
