@@ -39,7 +39,7 @@ jobs:
             ${{ inputs.cache-key-prefix }}-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-${{ hashFiles(inputs.cache-dependency-path) }}-
             ${{ inputs.cache-key-prefix }}-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-
       - name: Check Python formatting
-        uses: mr-chelyshkin/actions/invoke-taskfile@v2
+        uses: mr-chelyshkin/actions/task-run@v2
         with:
           task: ci/python/fmt
 
@@ -52,7 +52,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - *python-cache
       - name: Lint Python
-        uses: mr-chelyshkin/actions/invoke-taskfile@v2
+        uses: mr-chelyshkin/actions/task-run@v2
         with:
           task: ci/python/lint
 
@@ -65,7 +65,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - *python-cache
       - name: Run Python tests
-        uses: mr-chelyshkin/actions/invoke-taskfile@v2
+        uses: mr-chelyshkin/actions/task-run@v2
         with:
           task: ci/python/test
 
@@ -78,6 +78,6 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - *python-cache
       - name: Check Python types
-        uses: mr-chelyshkin/actions/invoke-taskfile@v2
+        uses: mr-chelyshkin/actions/task-run@v2
         with:
           task: ci/python/typecheck

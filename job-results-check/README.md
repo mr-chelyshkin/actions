@@ -1,4 +1,4 @@
-# Check job results
+# Job results check
 
 Combine dependency job results into one final check. Every job must succeed
 unless explicitly ignored or allowed to be skipped.
@@ -21,12 +21,12 @@ Add this job to a workflow that defines `build`, `audit` and `docs`. Replace
 ```yaml
 jobs:
   # build, audit and docs are defined elsewhere in this workflow.
-  check-job-results:
+  job-results-check:
     if: always()
     needs: [build, audit, docs]
     runs-on: ubuntu-24.04
     steps:
-      - uses: mr-chelyshkin/actions/check-job-results@<ref>
+      - uses: mr-chelyshkin/actions/job-results-check@<ref>
         with:
           results: ${{ toJSON(needs) }}
           ignored: audit

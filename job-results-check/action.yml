@@ -1,4 +1,4 @@
-name: Check job results
+name: Job results check
 description: Combine the results of needed jobs into one check.
 
 inputs:

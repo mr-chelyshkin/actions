@@ -1,4 +1,4 @@
-# Invoke Taskfile
+# Task run
 
 Install or restore a cached Task binary, then run a task from the consumer's
 Taskfile.
@@ -31,7 +31,7 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v7
-      - uses: mr-chelyshkin/actions/invoke-taskfile@<ref>
+      - uses: mr-chelyshkin/actions/task-run@<ref>
         env:
           NODE_ENV: production
         with:

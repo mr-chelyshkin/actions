@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Check Nix formatting
-        uses: mr-chelyshkin/actions/invoke-taskfile@v2
+        uses: mr-chelyshkin/actions/task-run@v2
         with:
           task: ci/nix/fmt
 
@@ -29,6 +29,6 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Lint Nix
-        uses: mr-chelyshkin/actions/invoke-taskfile@v2
+        uses: mr-chelyshkin/actions/task-run@v2
         with:
           task: ci/nix/lint

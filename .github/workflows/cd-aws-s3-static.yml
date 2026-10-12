@@ -191,6 +191,6 @@ jobs:
             --content-type "text/html; charset=utf-8" \
             --only-show-errors
       - name: Invalidate CloudFront
-        uses: mr-chelyshkin/actions/aws-cloudfront-invalidate@v1
+        uses: mr-chelyshkin/actions/aws-cloudfront-invalidate@v2
         with:
           distribution-id: ${{ steps.site.outputs.distribution-id }}

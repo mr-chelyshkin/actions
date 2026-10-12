@@ -38,7 +38,7 @@ jobs:
           restore-keys: |
             ${{ inputs.cache-key-prefix }}-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-
       - name: Build Node.js project
-        uses: mr-chelyshkin/actions/invoke-taskfile@v2
+        uses: mr-chelyshkin/actions/task-run@v2
         with:
           task: ci/node/build
 
@@ -50,7 +50,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Audit npm dependencies
-        uses: mr-chelyshkin/actions/invoke-taskfile@v2
+        uses: mr-chelyshkin/actions/task-run@v2
         with:
           task: ci/node/audit
 
@@ -63,6 +63,6 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - *node-cache
       - name: Run Node.js tests
-        uses: mr-chelyshkin/actions/invoke-taskfile@v2
+        uses: mr-chelyshkin/actions/task-run@v2
         with:
           task: ci/node/test

@@ -1,4 +1,4 @@
-name: Check tag format
+name: Tag format check
 description: Check a tag name against a regular expression.
 
 inputs:

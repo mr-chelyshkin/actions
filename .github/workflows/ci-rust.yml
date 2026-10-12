@@ -29,7 +29,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Check Rust formatting
-        uses: mr-chelyshkin/actions/invoke-taskfile@v2
+        uses: mr-chelyshkin/actions/task-run@v2
         with:
           task: ci/rust/fmt
 
@@ -51,7 +51,7 @@ jobs:
             ${{ inputs.cache-key-prefix }}-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-${{ hashFiles(inputs.cache-dependency-path) }}-
             ${{ inputs.cache-key-prefix }}-${{ runner.os }}-${{ runner.arch }}-${{ github.job }}-
       - name: Lint Rust
-        uses: mr-chelyshkin/actions/invoke-taskfile@v2
+        uses: mr-chelyshkin/actions/task-run@v2
         with:
           task: ci/rust/lint
 
@@ -64,7 +64,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - *rust-cache
       - name: Run Rust tests
-        uses: mr-chelyshkin/actions/invoke-taskfile@v2
+        uses: mr-chelyshkin/actions/task-run@v2
         with:
           task: ci/rust/test
 
@@ -77,7 +77,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - *rust-cache
       - name: Check Rust docs
-        uses: mr-chelyshkin/actions/invoke-taskfile@v2
+        uses: mr-chelyshkin/actions/task-run@v2
         with:
           task: ci/rust/docs
 
@@ -89,6 +89,6 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Audit Rust dependencies
-        uses: mr-chelyshkin/actions/invoke-taskfile@v2
+        uses: mr-chelyshkin/actions/task-run@v2
         with:
           task: ci/rust/audit

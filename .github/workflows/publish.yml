@@ -21,11 +21,11 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - name: Check tag format
-        uses: ./check-tag-format
+        uses: ./tag-format-check
         with:
           pattern: '^v[1-9][0-9]*$'
       - name: Check that the tag is on main
-        uses: ./check-tag-branch
+        uses: ./tag-branch-check
         with:
           branch: main
 

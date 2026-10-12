@@ -1,4 +1,4 @@
-# Check tag format
+# Tag format check
 
 Check a tag against a regular expression. Defaults to `github.ref_name`;
 checkout is not required.
@@ -7,7 +7,7 @@ checkout is not required.
 
 ```yaml
 steps:
-  - uses: mr-chelyshkin/actions/check-tag-format@<ref>
+  - uses: mr-chelyshkin/actions/tag-format-check@<ref>
 ```
 
 The default follows [SemVer 2.0.0](https://semver.org/) with a required
@@ -29,7 +29,7 @@ For module catalog tags `v1`, `v2`, and higher, without leading zeros:
 
 ```yaml
 steps:
-  - uses: mr-chelyshkin/actions/check-tag-format@<ref>
+  - uses: mr-chelyshkin/actions/tag-format-check@<ref>
     with:
       pattern: '^v[1-9][0-9]*$'
 ```
@@ -49,6 +49,6 @@ case-sensitive and uses the C locale.
 
 An empty pattern, an invalid expression, or a tag that does not match fails the
 step. Branch membership is checked separately by
-[check-tag-branch](../check-tag-branch/README.md).
+[tag-branch-check](../tag-branch-check/README.md).
 
 Implementation: [action.yml](action.yml).

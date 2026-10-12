@@ -1,4 +1,4 @@
-# Check tag branch
+# Tag branch check
 
 Check that the commit targeted by a tag is contained in a remote branch.
 
@@ -10,7 +10,7 @@ steps:
   - uses: actions/checkout@v7
     with:
       fetch-depth: 0
-  - uses: mr-chelyshkin/actions/check-tag-branch@<ref>
+  - uses: mr-chelyshkin/actions/tag-branch-check@<ref>
     with:
       branch: main
 ```
