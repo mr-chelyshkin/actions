@@ -17,6 +17,16 @@ on:
         type: string
         required: false
         default: ''
+      gcp-workload-identity-provider:
+        description: GCP Workload Identity provider for GitHub OIDC before Terraform plan.
+        type: string
+        required: false
+        default: ''
+      gcp-service-account:
+        description: GCP service account to impersonate through the Workload Identity provider.
+        type: string
+        required: false
+        default: ''
       cache-path:
         description: Host provider cache paths to preserve. Empty disables provider caching.
         type: string
@@ -32,6 +42,9 @@ on:
     secrets:
       terraform-vars:
         description: Secret Terraform variables, one NAME=value per line.
+        required: false
+      credentials:
+        description: Secret provider credentials, one NAME=value per line, forwarded into the container.
         required: false
 
 jobs:
@@ -68,6 +81,7 @@ jobs:
 
   plan:
     needs: [fmt, validate]
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -85,25 +99,55 @@ jobs:
           role-to-assume: ${{ inputs.terraform-role-arn }}
           role-session-name: terraform-plan-${{ github.run_id }}
 
-      - name: Export secret Terraform variables
+      - name: Configure GCP credentials
+        id: gcp
+        if: inputs.gcp-workload-identity-provider != ''
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: ${{ inputs.gcp-workload-identity-provider }}
+          service_account: ${{ inputs.gcp-service-account }}
+          token_format: access_token
+          create_credentials_file: false
+
+      - name: Export secrets
         shell: bash
         env:
           TERRAFORM_VARS: ${{ secrets.terraform-vars }}
+          CREDENTIALS: ${{ secrets.credentials }}
+          GCP_ACCESS_TOKEN: ${{ steps.gcp.outputs.access_token }}
+          OIDC_CREDENTIALS: >-
+            ${{ inputs.terraform-role-arn != '' && 'AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN AWS_REGION AWS_DEFAULT_REGION' || '' }}
+            ${{ inputs.gcp-workload-identity-provider != '' && 'GOOGLE_OAUTH_ACCESS_TOKEN GOOGLE_CLOUD_PROJECT' || '' }}
         run: |
           set -euo pipefail
 
-          while IFS= read -r line; do
-            line=${line%$'\r'}
-            [[ -z "${line//[[:space:]]/}" ]] && continue
-            name=${line%%=*}
-            value=${line#*=}
-            if [[ "$line" != *=* || ! "$name" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
-              echo "::error::Each terraform-vars line must be NAME=value."
-              exit 1
-            fi
-            [[ -n "$value" ]] && echo "::add-mask::$value"
-            printf 'TF_VAR_%s=%s\n' "$name" "$value" >> "$GITHUB_ENV"
-          done <<< "$TERRAFORM_VARS"
+          read -r -a names <<< "$OIDC_CREDENTIALS"
+          if [[ -n "$GCP_ACCESS_TOKEN" ]]; then
+            printf 'GOOGLE_OAUTH_ACCESS_TOKEN=%s\n' "$GCP_ACCESS_TOKEN" >> "$GITHUB_ENV"
+          fi
+
+          export_secrets() {
+            local secret=$1 prefix=$2 line name value
+            while IFS= read -r line; do
+              line=${line%$'\r'}
+              [[ -z "${line//[[:space:]]/}" ]] && continue
+              name=${line%%=*}
+              value=${line#*=}
+              if [[ "$line" != *=* || ! "$name" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
+                echo "::error::Each $secret line must be NAME=value."
+                exit 1
+              fi
+              [[ -n "$value" ]] && echo "::add-mask::$value"
+              printf '%s%s=%s\n' "$prefix" "$name" "$value" >> "$GITHUB_ENV"
+              [[ -n "$prefix" ]] || names+=("$name")
+            done
+          }
+          export_secrets terraform-vars TF_VAR_ <<< "$TERRAFORM_VARS"
+          export_secrets credentials '' <<< "$CREDENTIALS"
+
+          if (( ${#names[@]} )); then
+            printf 'CONTAINER_ENVS=%s\n' "${CONTAINER_ENVS:+$CONTAINER_ENVS }${names[*]}" >> "$GITHUB_ENV"
+          fi
 
       - name: Prepare Terraform task
         uses: mr-chelyshkin/actions/invoke-taskfile@v2

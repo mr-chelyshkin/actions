@@ -32,10 +32,10 @@ on:
         type: string
         required: true
       terraform-version:
-        description: Terraform CLI version used to apply Terraform and read outputs.
+        description: Terraform CLI version used to apply Terraform and read outputs. Empty reads .terraform-version in terraform-workdir.
         type: string
         required: false
-        default: 1.15.9
+        default: ''
       terraform-workdir:
         description: Terraform working directory relative to the workspace.
         type: string
@@ -116,7 +116,7 @@ jobs:
           done <<< "$TERRAFORM_VARS"
       - name: Apply Terraform
         id: apply
-        uses: mr-chelyshkin/actions/terraform-apply@v1
+        uses: mr-chelyshkin/actions/terraform-apply@v2
         env:
           TF_VAR_aws_region: ${{ inputs.aws-region }}
           TF_VAR_domain_name: ${{ inputs.domain-name }}
