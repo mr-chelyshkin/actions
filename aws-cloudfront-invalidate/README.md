@@ -1,8 +1,10 @@
 # AWS CloudFront invalidate
 
-Invalidate cached paths in a CloudFront distribution and optionally wait for the invalidation to complete.
+Invalidate cached paths in a CloudFront distribution and optionally wait for the
+invalidation to complete.
 
-The calling job must configure AWS credentials and make the AWS CLI available before using this action.
+The calling job must configure AWS credentials and make the AWS CLI available
+before using this action.
 
 ```yaml
 steps:
@@ -19,12 +21,13 @@ steps:
 
 ## Inputs
 
-| Input             | Value                                               |
-|-------------------|-----------------------------------------------------|
-| `distribution-id` | Required CloudFront distribution ID.                |
-| `paths`           | Space-separated paths to invalidate. Default: `/*`. |
-| `wait`            | Wait for completion. Default: `true`.               |
+| Input | Value |
+| -- | -- |
+| `distribution-id` | Required CloudFront distribution ID. |
+| `paths` | Space-separated paths to invalidate. Default: `/*`. |
+| `wait` | Wait for completion. Default: `true`. |
 
-The action creates an invalidation for the selected paths. When `wait` is `true`, it waits until the invalidation is complete.
+The action creates an invalidation for the selected paths. When `wait` is
+`true`, it waits until the invalidation is complete.
 
 Implementation: [action.yml](action.yml).

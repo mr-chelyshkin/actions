@@ -8,7 +8,7 @@ includes:
     internal: true
 
 vars:
-  markdown_paths: README.md
+  markdown_paths: .
 
 tasks:
   ci/markdown/fmt:

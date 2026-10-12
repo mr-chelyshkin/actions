@@ -1,20 +1,22 @@
 # Check job results
 
-Combine dependency job results into one final check. Every job must succeed unless explicitly ignored or allowed to be skipped.
+Combine dependency job results into one final check. Every job must succeed
+unless explicitly ignored or allowed to be skipped.
 
 ## Inputs
 
-| Input     | Value                                                                                                                 |
-|-----------|-----------------------------------------------------------------------------------------------------------------------|
-| `results` | Required JSON object from `${{ toJSON(needs) }}`.                                                                     |
-| `ignored` | Space-separated job IDs whose results are ignored, including failures and cancellations. Default: empty.              |
+| Input | Value |
+| -- | -- |
+| `results` | Required JSON object from `${{ toJSON(needs) }}`. |
+| `ignored` | Space-separated job IDs whose results are ignored, including failures and cancellations. Default: empty. |
 | `skipped` | Space-separated job IDs allowed to return `skipped`. Failures and cancellations still fail the check. Default: empty. |
 
 Use job IDs, not display names. `ignored` takes precedence over `skipped`.
 
 ## Example
 
-Add this job to a workflow that defines `build`, `audit` and `docs`. Replace `<ref>` with a published commit or tag.
+Add this job to a workflow that defines `build`, `audit` and `docs`. Replace
+`<ref>` with a published commit or tag.
 
 ```yaml
 jobs:
@@ -31,19 +33,20 @@ jobs:
           skipped: docs
 ```
 
-`needs` selects the jobs to check. `if: always()` runs the check even when a dependency fails or is skipped. 
+`needs` selects the jobs to check. `if: always()` runs the check even when a
+dependency fails or is skipped.
 
 ## Results
 
 For the example above:
 
-| `build`   | `audit`     | `docs`      | Check                   |
-|-----------|-------------|-------------|-------------------------|
-| `success` | `success`   | `success`   | Pass                    |
-| `success` | `failure`   | `skipped`   | Pass                    |
-| `success` | `cancelled` | `success`   | Pass                    |
-| `failure` | `success`   | `skipped`   | Fail: `build: failure`  |
-| `success` | `success`   | `cancelled` | Fail: `docs: cancelled` |
+| `build` | `audit` | `docs` | Check |
+| -- | -- | -- | -- |
+| `success` | `success` | `success` | Pass |
+| `success` | `failure` | `skipped` | Pass |
+| `success` | `cancelled` | `success` | Pass |
+| `failure` | `success` | `skipped` | Fail: `build: failure` |
+| `success` | `success` | `cancelled` | Fail: `docs: cancelled` |
 
 Success exits with code `0`:
 
