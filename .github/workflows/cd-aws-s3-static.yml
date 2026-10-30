@@ -173,6 +173,7 @@ jobs:
             "s3://$BUCKET" \
             --no-follow-symlinks \
             "${exclude_args[@]}" \
+            --delete \
             --cache-control "public,max-age=0,s-maxage=31536000,must-revalidate" \
             --only-show-errors
       - name: Upload index.html
