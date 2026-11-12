@@ -116,7 +116,7 @@ jobs:
           done <<< "$TERRAFORM_VARS"
       - name: Apply Terraform
         id: apply
-        uses: mr-chelyshkin/actions/terraform-apply@v2
+        uses: mr-chelyshkin/actions/terraform-apply@v3
         env:
           TF_VAR_aws_region: ${{ inputs.aws-region }}
           TF_VAR_domain_name: ${{ inputs.domain-name }}
@@ -192,6 +192,6 @@ jobs:
             --content-type "text/html; charset=utf-8" \
             --only-show-errors
       - name: Invalidate CloudFront
-        uses: mr-chelyshkin/actions/aws-cloudfront-invalidate@v2
+        uses: mr-chelyshkin/actions/aws-cloudfront-invalidate@v3
         with:
           distribution-id: ${{ steps.site.outputs.distribution-id }}
